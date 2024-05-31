@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/cybwan/l4gw/pkg/netaddr"
+	"github.com/cybwan/f4gw/pkg/netaddr"
 )
 
 func main() {

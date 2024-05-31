@@ -8,15 +8,20 @@ import (
 
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/link"
+	"github.com/cilium/ebpf/rlimit"
 	"github.com/mdlayher/arp"
 
-	"github.com/cybwan/l4gw/pkg/bpf"
-	"github.com/cybwan/l4gw/pkg/netaddr"
+	"github.com/cybwan/f4gw/pkg/bpf"
+	"github.com/cybwan/f4gw/pkg/netaddr"
 )
 
 //go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cflags $BPF_CFLAGS bpf $BPF_SRC_DIR/gateway.kern.c -- -I $BPF_INC_DIR
 
 func (gw *F4Gw) Init() {
+	if err := rlimit.RemoveMemlock(); err != nil {
+		log.Fatal().Msgf("remove memlock error: %v", err)
+	}
+
 	gw.cleanCallbacks = make(map[string]func() error)
 	gw.bpfObjs = new(bpfObjects)
 

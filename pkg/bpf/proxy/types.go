@@ -1,6 +1,6 @@
 package proxy
 
-import "github.com/cybwan/l4gw/pkg/logger"
+import "github.com/cybwan/f4gw/pkg/logger"
 
 var (
 	log = logger.New("flomesh-f4proxy")

@@ -1,4 +1,4 @@
-module github.com/cybwan/l4gw
+module github.com/cybwan/f4gw
 
 go 1.22.0
 

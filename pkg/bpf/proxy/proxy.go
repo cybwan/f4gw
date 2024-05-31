@@ -7,13 +7,18 @@ import (
 
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/link"
+	"github.com/cilium/ebpf/rlimit"
 
-	"github.com/cybwan/l4gw/pkg/bpf"
+	"github.com/cybwan/f4gw/pkg/bpf"
 )
 
 //go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cflags $BPF_CFLAGS bpf $BPF_SRC_DIR/proxy.kern.c -- -I $BPF_INC_DIR
 
 func (proxy *F4Proxy) Init() {
+	if err := rlimit.RemoveMemlock(); err != nil {
+		log.Fatal().Msgf("remove memlock error: %v", err)
+	}
+
 	proxy.cleanCallbacks = make(map[string]func() error)
 	proxy.bpfObjs = new(bpfObjects)
 

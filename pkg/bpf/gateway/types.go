@@ -1,6 +1,6 @@
 package gateway
 
-import "github.com/cybwan/l4gw/pkg/logger"
+import "github.com/cybwan/f4gw/pkg/logger"
 
 const (
 	FLM_DP_PKT_SLOW_PGM_ID = int32(1)
