@@ -1,0 +1,20 @@
+{
+  "workDuration": "900s",
+  "ingress": [
+    {
+      "linkName": "ens36"
+    }
+  ],
+  "egress": [
+    {
+      "viaName": "ens33",
+      "viaAddr": "192.168.127.22",
+      "backends": [
+        {
+          "ipv4": "192.168.127.31",
+          "port": 80
+        }
+      ]
+    }
+  ]
+}

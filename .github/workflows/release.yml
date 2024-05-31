@@ -1,0 +1,83 @@
+name: Release
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  version:
+    name: Set Version from git ref
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - id: version
+        run: echo "::set-output name=version::$(sed 's#^refs/tags/\(.*\)#\1#' <<< '${{ github.ref }}')"
+
+  binaries:
+    name: Binaries
+    runs-on: ubuntu-latest
+    needs: version
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      BUILD_DATE: '$$(date +%Y-%m-%d-%H:%M)'
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Build Binaries
+        run: |
+          make release-artifacts
+      - name: Generate Release Notes
+        run: scripts/release-notes.sh $VERSION > release-notes.md
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          tag: ${{ env.VERSION }}
+          name: ${{ env.VERSION }}
+          bodyFile: "release-notes.md"
+          prerelease: ${{ contains(env.VERSION, '-alpha.') || contains(env.VERSION, '-beta.') || contains(env.VERSION, '-rc.') || contains(env.VERSION, '-nightly.') }}
+      - name: Upload Linux (amd64).zip
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: "_dist/f4gw-${{ env.VERSION }}-linux-amd64.zip"
+          asset_name: "f4gw-${{ env.VERSION }}-linux-amd64.zip"
+          asset_content_type: application/zip
+      - name: Upload Linux (amd64).tar.gz
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: "_dist/f4gw-${{ env.VERSION }}-linux-amd64.tar.gz"
+          asset_name: "f4gw-${{ env.VERSION }}-linux-amd64.tar.gz"
+          asset_content_type: application/gzip
+      - name: Upload Linux (arm64).zip
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: "_dist/f4gw-${{ env.VERSION }}-linux-arm64.zip"
+          asset_name: "f4gw-${{ env.VERSION }}-linux-arm64.zip"
+          asset_content_type: application/zip
+      - name: Upload Linux (arm64).tar.gz
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: "_dist/f4gw-${{ env.VERSION }}-linux-arm64.tar.gz"
+          asset_name: "f4gw-${{ env.VERSION }}-linux-arm64.tar.gz"
+          asset_content_type: application/gzip
+      - name: Upload Checksums
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: _dist/sha256sums.txt
+          asset_name: sha256sums.txt
+          asset_content_type: text/plain
