@@ -13,18 +13,32 @@ curl http://httpbin.org -I
 
 nslookup httpbin.org 8.8.8.8
 
-ping www.baidu.com
+ping 8.8.8.8
 ```
 
 ## F4GW
 
 ```bash
+system=$(uname -s | tr [:upper:] [:lower:])
+arch=$(dpkg --print-architecture)
+release=v0.1.1-alpha.1
+curl -L https://github.com/cybwan/f4gw/releases/download/${release}/f4gw-${release}-${system}-${arch}.tar.gz | tar -vxzf -
+cd ./${system}-${arch}
+
+# modify gw.json
 ./f4gw -c gw.json
 ```
 
 ## F4Proxy
 
 ```bash
+system=$(uname -s | tr [:upper:] [:lower:])
+arch=$(dpkg --print-architecture)
+release=v0.1.1-alpha.1
+curl -L https://github.com/cybwan/f4gw/releases/download/${release}/f4gw-${release}-${system}-${arch}.tar.gz | tar -vxzf -
+cd ./${system}-${arch}
+
+# modify proxy.json
 ./f4proxy -c proxy.json
 ```
 
@@ -33,3 +47,25 @@ ping www.baidu.com
 ```
 sudo cat /sys/kernel/debug/tracing/trace_pipe|grep bpf_trace_printk
 ```
+
+nat netflow messages:
+
+```
+     ksoftirqd/0-14      [000] d.s21  7171.643922: bpf_trace_printk: ==================================
+     ksoftirqd/0-14      [000] d.s21  7171.643949: bpf_trace_printk: f4m proto 17        ipv6(?) 0
+     ksoftirqd/0-14      [000] d.s21  7171.643951: bpf_trace_printk: f4m daddr 8.8.8.8 dport 53
+     ksoftirqd/0-14      [000] d.s21  7171.643953: bpf_trace_printk: f4m saddr 192.168.226.21 sport 39508
+     ksoftirqd/0-14      [000] d.s21  7171.643953: bpf_trace_printk: f4m xaddr 192.168.127.22 xport 39508
+          <idle>-0       [000] d.s31  7172.345965: bpf_trace_printk: ==================================
+          <idle>-0       [000] dNs31  7172.345994: bpf_trace_printk: f4m proto 6         ipv6(?) 0
+          <idle>-0       [000] dNs31  7172.345996: bpf_trace_printk: f4m daddr 18.208.239.112 dport 80
+          <idle>-0       [000] dNs31  7172.345997: bpf_trace_printk: f4m saddr 192.168.226.21 sport 34706
+          <idle>-0       [000] dNs31  7172.345997: bpf_trace_printk: f4m xaddr 192.168.127.22 xport 34706
+```
+
+**Nat Netflow**
+
+```bash
+bpftool map dump name f4gw_nat_opts
+```
+
