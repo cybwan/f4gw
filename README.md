@@ -1,5 +1,9 @@
 # F4GW
 
+# Prerequisites
+
+> **kernel >= v5.10**
+
 # TOPO
 
 **Client[192.168.226.21] <--> F4GW[192.168.226.22, 192.168.127.22] <--> F4Proxy[192.168.127.31] <--> Internet**
