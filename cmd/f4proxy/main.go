@@ -11,8 +11,8 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"github.com/cybwan/l4gw/pkg/bpf/proxy"
-	"github.com/cybwan/l4gw/pkg/logger"
+	"github.com/cybwan/f4gw/pkg/bpf/proxy"
+	"github.com/cybwan/f4gw/pkg/logger"
 )
 
 var (
