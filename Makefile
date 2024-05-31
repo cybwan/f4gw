@@ -23,6 +23,10 @@ BPF_CFLAGS = \
 	-Wno-pointer-sign     \
 	-Wno-compare-distinct-pointer-types
 
+.PHONY: bpf-fmt
+bpf-fmt:
+	find . -regex '.*\.\(c\|h\)' -exec clang-format -style=file -i {} \;
+
 bpf-build: ${BIN_DIR}/${XDP_GATEWAY_OUT} ${BIN_DIR}/${XDP_PROXY_OUT}
 
 ${BIN_DIR}/${XDP_GATEWAY_OUT}: ${SRC_DIR}/${XDP_GATEWAY_SRC}
@@ -34,6 +38,10 @@ ${BIN_DIR}/${XDP_PROXY_OUT}: ${SRC_DIR}/${XDP_PROXY_SRC}
 bpf-clean:
 	rm -f ${BIN_DIR}/${XDP_GATEWAY_OUT}
 	rm -f ${BIN_DIR}/${XDP_PROXY_OUT}
+
+.PHONY: go-fmt
+go-fmt:
+	go fmt ./...
 
 .PHONY: go-generate
 go-generate: export BPF_CFLAGS := $(BPF_CFLAGS)
