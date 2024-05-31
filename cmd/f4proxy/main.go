@@ -55,14 +55,6 @@ func main() {
 	}
 	fmt.Println(string(bytes))
 
-	f4proxy := new(proxy.F4Proxy)
-	f4proxy.Init()
-	defer f4proxy.Close()
-
-	for _, ingress := range f4proxyCfg.Ingress {
-		f4proxy.AttachIngressBPF(ingress.LinkName)
-	}
-
 	workDuration, err := time.ParseDuration(f4proxyCfg.WorkDuration)
 	if err != nil {
 		log.Fatal().Msg(err.Error())
@@ -72,6 +64,18 @@ func main() {
 	}
 	quitTimer := time.NewTimer(workDuration)
 	defer quitTimer.Stop()
+
+	f4proxy := new(proxy.F4Proxy)
+	if err = f4proxy.Init(); err != nil {
+		log.Fatal().Msg(err.Error())
+	}
+	defer f4proxy.Close()
+
+	for _, ingress := range f4proxyCfg.Ingress {
+		if err = f4proxy.AttachIngressBPF(ingress.LinkName); err != nil {
+			log.Fatal().Msg(err.Error())
+		}
+	}
 
 	sigCh := make(chan os.Signal, 5)
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGCHLD, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)

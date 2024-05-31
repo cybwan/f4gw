@@ -55,21 +55,6 @@ func main() {
 	}
 	fmt.Println(string(bytes))
 
-	f4gw := new(gateway.F4Gw)
-	f4gw.Init()
-	defer f4gw.Close()
-
-	for _, ingress := range f4gwCfg.Ingress {
-		f4gw.AttachIngressBPF(ingress.LinkName)
-	}
-
-	for _, egress := range f4gwCfg.Egress {
-		f4gw.AttachEgressBPF(egress.ViaName)
-		if err = f4gw.ApplyNatLB(egress.ViaName, egress.ViaAddr, egress.Backends); err != nil {
-			log.Error().Msg(err.Error())
-		}
-	}
-
 	workDuration, err := time.ParseDuration(f4gwCfg.WorkDuration)
 	if err != nil {
 		log.Fatal().Msg(err.Error())
@@ -79,6 +64,27 @@ func main() {
 	}
 	quitTimer := time.NewTimer(workDuration)
 	defer quitTimer.Stop()
+
+	f4gw := new(gateway.F4Gw)
+	if err = f4gw.Init(); err != nil {
+		log.Fatal().Msg(err.Error())
+	}
+	defer f4gw.Close()
+
+	for _, ingress := range f4gwCfg.Ingress {
+		if err = f4gw.AttachIngressBPF(ingress.LinkName); err != nil {
+			log.Fatal().Msg(err.Error())
+		}
+	}
+
+	for _, egress := range f4gwCfg.Egress {
+		if err = f4gw.AttachEgressBPF(egress.ViaName); err != nil {
+			log.Fatal().Msg(err.Error())
+		}
+		if err = f4gw.ApplyNatLB(egress.ViaName, egress.ViaAddr, egress.Backends); err != nil {
+			log.Fatal().Msg(err.Error())
+		}
+	}
 
 	sigCh := make(chan os.Signal, 5)
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGCHLD, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
