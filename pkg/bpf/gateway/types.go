@@ -42,11 +42,15 @@ type F4Gw struct {
 	bpfObjs *bpfObjects
 
 	cleanCallbacks map[string]func() error
+
+	attachedXdpLinks map[string]uint8
 }
 
 type F4GwBackend struct {
-	IPv4 string `json:"ipv4"`
-	Port uint16 `json:"port"`
+	ViaLinkName string `json:"viaLinkName"`
+	ViaLinkAddr string `json:"viaLinkAddr"`
+	IPv4        string `json:"ipv4"`
+	Port        uint16 `json:"port"`
 }
 
 type F4GwIngress struct {
@@ -57,8 +61,6 @@ type F4GwEgress struct {
 	TargetProto L4Proto       `json:"targetProto"`
 	TargetAddr  string        `json:"targetAddr"`
 	TargetPort  uint16        `json:"targetPort"`
-	ViaLinkName string        `json:"viaLinkName"`
-	ViaLinkAddr string        `json:"viaLinkAddr"`
 	Backends    []F4GwBackend `json:"backends"`
 }
 
