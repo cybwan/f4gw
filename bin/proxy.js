@@ -49,6 +49,12 @@ function findOriDst(inbound, proto) {
     v6: 0,
   })
   if (ent) {
+    map.delete({
+      xaddr: sip.toBytes(),
+      xport: inbound.remotePort,
+      l4proto: proto,
+      v6: 0,
+    })
     var ip = new IP(ent.daddr)
     var port = ent.dport
     $target = `${ip}:${port}`

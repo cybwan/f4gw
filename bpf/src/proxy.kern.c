@@ -42,7 +42,7 @@ int xdp_ingress(struct xdp_md *ctx) {
 
   dp_parse_d0(ctx, xf, 1);
 
-  if (xf->pm.f4) {
+  if (xf->pm.f4 && (xf->l34m.nw_proto == IPPROTO_TCP || xf->l34m.nw_proto == IPPROTO_UDP)) {
     struct dp_nat_opt_key okey;
     struct dp_nat_opt_tact oact;
 
