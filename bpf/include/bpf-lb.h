@@ -144,8 +144,9 @@ dp_do_nat(void *ctx, struct xfrm *xf)
     F4_DBG_NTLB("[NTLB] dst port=%d\n", ntohs(xf->l34m.dest));
   }
 
-  // xf->pm.table_id = F4_DP_NAT_MAP;
   memset(&key, 0, sizeof(key));
+  key.l4proto = xf->l34m.nw_proto;
+  key.v6 = 0;
 
   act = bpf_map_lookup_elem(&f4gw_nat, &key);
   if (!act) {
