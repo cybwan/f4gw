@@ -44,10 +44,12 @@ cd ./${system}-${arch}
 
 # modify proxy.json
 ./f4proxy -c proxy.json
-pipy
+
+# new terminal
+pipy proxy.js
 ```
 
-**Tracing log**
+**Tracing log** (now disabled)
 
 ```
 sudo cat /sys/kernel/debug/tracing/trace_pipe|grep bpf_trace_printk
