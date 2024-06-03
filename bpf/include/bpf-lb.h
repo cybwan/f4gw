@@ -18,8 +18,6 @@ dp_pipe_set_nat(void *ctx, struct xfrm *xf,
   xf->nm.nv6 = na->nv6 ? 1 : 0;
   xf->nm.dsr = na->dsr;
   xf->nm.cdis = na->cdis;
-  F4_DBG_NTLB("[NTLB] NAT ACT %x", xf->pm.nf);
-
   return 0;
 }
 
@@ -110,7 +108,7 @@ dp_sel_nat_ep(void *ctx, struct xfrm *xf, struct dp_nat_tacts *act)
     }
   }
 
-  F4_DBG_NTLB("[NTLB] lb-sel %d\n", sel);
+  // F4_DBG_NTLB("[NTLB] lb-sel %d\n", sel);
   return sel;
 }
 
@@ -136,13 +134,13 @@ dp_do_nat(void *ctx, struct xfrm *xf)
     key.v6 = 1;
   }
 
-  if (F4_DEBUG_INT(xf)) {
-    F4_DBG_NTLB("[NTLB] Lookup");
-    F4_DBG_NTLB("[NTLB] src addr=%pI4\n", &xf->l34m.saddr4);
-    F4_DBG_NTLB("[NTLB] dst addr=%pI4\n", &xf->l34m.daddr4);
-    F4_DBG_NTLB("[NTLB] src port=%d\n", ntohs(xf->l34m.source));
-    F4_DBG_NTLB("[NTLB] dst port=%d\n", ntohs(xf->l34m.dest));
-  }
+  // if (F4_DEBUG_PKT(xf)) {
+  //   F4_DBG_NTLB("[NTLB] Lookup");
+  //   F4_DBG_NTLB("[NTLB] src addr=%pI4\n", &xf->l34m.saddr4);
+  //   F4_DBG_NTLB("[NTLB] dst addr=%pI4\n", &xf->l34m.daddr4);
+  //   F4_DBG_NTLB("[NTLB] src port=%d\n", ntohs(xf->l34m.source));
+  //   F4_DBG_NTLB("[NTLB] dst port=%d\n", ntohs(xf->l34m.dest));
+  // }
 
   memset(&key, 0, sizeof(key));
   key.l4proto = xf->l34m.nw_proto;
@@ -156,10 +154,6 @@ dp_do_nat(void *ctx, struct xfrm *xf)
   }
 
   xf->pm.phit |= F4_DP_NAT_HIT;
-
-  if (F4_DEBUG_INT(xf)) {
-    F4_DBG_NTLB("[NTLB] nat_act %d pipe_act %x\n", act->ca.act_type, xf->pm.pipe_act);
-  }
 
   if (act->ca.act_type == DP_SET_SNAT || 
       act->ca.act_type == DP_SET_DNAT) {
@@ -191,16 +185,16 @@ dp_do_nat(void *ctx, struct xfrm *xf)
       xf->nm.sel_aid = sel;
       xf->nm.ito = act->ito;
       xf->pm.rule_id =  act->ca.cidx;
-      if (F4_DEBUG_INT(xf)) {
-        F4_DBG_NTLB("[NTLB] ACT %x\n", xf->pm.nf);
-        F4_DBG_NTLB("[NTLB] nxip4 %pI4\n", &xf->nm.nxip4);
-        F4_DBG_NTLB("[NTLB] rxip4 %pI4\n", &xf->nm.nrip4);
-        F4_DBG_NTLB("[NTLB] nxifi %d\n", xf->nm.nxifi);
-        F4_DBG_NTLB("[NTLB] nxmac %02x:%02x:%02x\n", xf->nm.nxmac[0],xf->nm.nxmac[1],xf->nm.nxmac[2]);
-        F4_DBG_NTLB("[NTLB] nxmac %02x:%02x:%02x\n", xf->nm.nxmac[3],xf->nm.nxmac[4],xf->nm.nxmac[5]);
-        F4_DBG_NTLB("[NTLB] nrmac %02x:%02x:%02x\n", xf->nm.nrmac[0],xf->nm.nrmac[1],xf->nm.nrmac[2]);
-        F4_DBG_NTLB("[NTLB] nrmac %02x:%02x:%02x\n", xf->nm.nrmac[3],xf->nm.nrmac[4],xf->nm.nrmac[5]);
-      }
+      // if (F4_DEBUG_PKT(xf)) {
+      //   F4_DBG_NTLB("[NTLB] ACT %x\n", xf->pm.nf);
+      //   F4_DBG_NTLB("[NTLB] nxip4 %pI4\n", &xf->nm.nxip4);
+      //   F4_DBG_NTLB("[NTLB] rxip4 %pI4\n", &xf->nm.nrip4);
+      //   F4_DBG_NTLB("[NTLB] nxifi %d\n", xf->nm.nxifi);
+      //   F4_DBG_NTLB("[NTLB] nxmac %02x:%02x:%02x\n", xf->nm.nxmac[0],xf->nm.nxmac[1],xf->nm.nxmac[2]);
+      //   F4_DBG_NTLB("[NTLB] nxmac %02x:%02x:%02x\n", xf->nm.nxmac[3],xf->nm.nxmac[4],xf->nm.nxmac[5]);
+      //   F4_DBG_NTLB("[NTLB] nrmac %02x:%02x:%02x\n", xf->nm.nrmac[0],xf->nm.nrmac[1],xf->nm.nrmac[2]);
+      //   F4_DBG_NTLB("[NTLB] nrmac %02x:%02x:%02x\n", xf->nm.nrmac[3],xf->nm.nrmac[4],xf->nm.nrmac[5]);
+      // }
       /* Special case related to host-dnat */
       if (xf->l34m.saddr4 == xf->nm.nxip4 && xf->pm.nf == F4_NAT_DST) {
         xf->nm.nxip4 = 0;
