@@ -169,12 +169,9 @@ dp_pipe_check_res(void *ctx, struct xfrm *xf, void *fa)
         return DP_DROP;
       }
       if (xf->pm.f4) {
-        debug_printf("dp_f4_packet========\n");
         if (dp_f4_packet(ctx, xf) != 0) {
-          debug_printf("dp_f4_packet failed\n");
           return DP_DROP;
         }
-        debug_printf("dp_f4_packet successed\n");
       }
       return bpf_redirect(xf->pm.oport, 0);
     }
