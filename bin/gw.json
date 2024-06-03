@@ -30,7 +30,7 @@
           "viaLinkName": "ens33",
           "viaLinkAddr": "192.168.127.22",
           "ipv4": "192.168.127.31",
-          "port": 1153
+          "port": 8688
         }
       ]
     },
@@ -44,49 +44,49 @@
           "viaLinkName": "ens33",
           "viaLinkAddr": "192.168.127.22",
           "ipv4": "192.168.127.31",
-          "port": 80
+          "port": 8689
         },
         {
           "viaLinkName": "ens33",
           "viaLinkAddr": "192.168.127.23",
           "ipv4": "192.168.127.31",
-          "port": 80
+          "port": 8689
         },
         {
           "viaLinkName": "ens33",
           "viaLinkAddr": "192.168.127.24",
           "ipv4": "192.168.127.31",
-          "port": 80
+          "port": 8689
         },
         {
           "viaLinkName": "ens33",
           "viaLinkAddr": "192.168.127.25",
           "ipv4": "192.168.127.31",
-          "port": 80
+          "port": 8689
         },
         {
           "viaLinkName": "ens33",
           "viaLinkAddr": "192.168.127.26",
           "ipv4": "192.168.127.31",
-          "port": 80
+          "port": 8689
         },
         {
           "viaLinkName": "ens33",
           "viaLinkAddr": "192.168.127.27",
           "ipv4": "192.168.127.31",
-          "port": 80
+          "port": 8689
         },
         {
           "viaLinkName": "ens33",
           "viaLinkAddr": "192.168.127.28",
           "ipv4": "192.168.127.31",
-          "port": 80
+          "port": 8689
         },
         {
           "viaLinkName": "ens33",
           "viaLinkAddr": "192.168.127.29",
           "ipv4": "192.168.127.31",
-          "port": 80
+          "port": 8689
         }
       ]
     }

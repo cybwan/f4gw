@@ -171,15 +171,15 @@ type bpfDpNatKey struct {
 }
 
 type bpfDpNatOptKey struct {
-	Xaddr   [4]uint32
+	Xaddr   uint32
 	Xport   uint16
 	L4proto uint8
 	V6      uint8
 }
 
 type bpfDpNatOptTact struct {
-	Daddr [4]uint32
-	Saddr [4]uint32
+	Daddr uint32
+	Saddr uint32
 	Sport uint16
 	Dport uint16
 }

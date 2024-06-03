@@ -42,7 +42,7 @@ int xdp_ingress(struct xdp_md *ctx) {
 
   dp_parse_d0(ctx, xf, 1);
 
-  if (xf->pm.f4) {
+  if (xf->pm.f4 && (xf->f4m.l4proto == IPPROTO_TCP || xf->f4m.l4proto == IPPROTO_UDP)) {
     struct dp_nat_opt_key okey;
     struct dp_nat_opt_tact oact;
 
@@ -51,22 +51,22 @@ int xdp_ingress(struct xdp_md *ctx) {
 
     okey.v6 = 0;
     okey.l4proto = xf->f4m.l4proto;
-    okey.xaddr4 = xf->f4m.xaddr4;
-    okey.xport = xf->f4m.xport;
+    okey.xaddr = xf->f4m.xaddr4;
+    okey.xport = ntohs(xf->f4m.xport);
 
-    oact.daddr4 = xf->f4m.daddr4;
-    oact.saddr4 = xf->f4m.saddr4;
-    oact.dport = xf->f4m.dport;
-    oact.sport = xf->f4m.sport;
+    oact.daddr = xf->f4m.daddr4;
+    oact.saddr = xf->f4m.saddr4;
+    oact.dport = ntohs(xf->f4m.dport);
+    oact.sport = ntohs(xf->f4m.sport);
 
 
     bpf_map_update_elem(&f4gw_nat_opts, &okey, &oact, BPF_ANY);
     
-    debug_printf("==================================\n");
-    debug_printf("f4m proto %d \t ipv6(?) %d\n", okey.l4proto, okey.v6);
-    debug_printf("f4m daddr %pI4 dport %d\n", &oact.daddr4, ntohs(oact.dport));
-    debug_printf("f4m saddr %pI4 sport %d\n", &oact.saddr4, ntohs(oact.sport));
-    debug_printf("f4m xaddr %pI4 xport %d\n", &okey.xaddr4, ntohs(okey.xport));
+    // debug_printf("==================================\n");
+    // debug_printf("f4m proto %d \t ipv6(?) %d\n", okey.l4proto, okey.v6);
+    // debug_printf("f4m daddr %pI4 dport %d\n", &oact.daddr, oact.dport);
+    // debug_printf("f4m saddr %pI4 sport %d\n", &oact.saddr, oact.sport);
+    // debug_printf("f4m xaddr %pI4 xport %d\n", &okey.xaddr, okey.xport);
   }
 
   return DP_PASS;

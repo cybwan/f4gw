@@ -316,15 +316,15 @@ struct dp_ct_ctrtact {
 };
 
 struct dp_nat_opt_key {
-  __u32 xaddr[4];
+  __u32 xaddr;
   __u16 xport;
   __u8  l4proto;
   __u8  v6;
 };
 
 struct dp_nat_opt_tact {
-  __u32 daddr[4];
-  __u32 saddr[4];
+  __u32 daddr;
+  __u32 saddr;
   __u16 sport;
   __u16 dport;
 };
