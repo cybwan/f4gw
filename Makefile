@@ -98,7 +98,7 @@ dist:
 		$(DIST_DIRS) cp ../README.md {} \; && \
 		$(DIST_DIRS) cp ../bin/gw.json {} \; && \
 		$(DIST_DIRS) cp ../bin/proxy.json {} \; && \
-		$(DIST_DIRS) cp ../bin/proxy.pjs {} \; && \
+		$(DIST_DIRS) cp ../bin/proxy.js {} \; && \
 		$(DIST_DIRS) tar -zcf f4gw-${VERSION}-{}.tar.gz {} \; && \
 		$(DIST_DIRS) zip -r f4gw-${VERSION}-{}.zip {} \; && \
 		$(SHA256) f4gw-* > sha256sums.txt \
