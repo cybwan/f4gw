@@ -25,7 +25,7 @@ ping 8.8.8.8
 ```bash
 system=$(uname -s | tr [:upper:] [:lower:])
 arch=$(dpkg --print-architecture)
-release=v0.2.1-alpha.1
+release=v0.3.1-alpha.1
 curl -L https://github.com/cybwan/f4gw/releases/download/${release}/f4gw-${release}-${system}-${arch}.tar.gz | tar -vxzf -
 cd ./${system}-${arch}
 
@@ -38,7 +38,7 @@ cd ./${system}-${arch}
 ```bash
 system=$(uname -s | tr [:upper:] [:lower:])
 arch=$(dpkg --print-architecture)
-release=v0.2.1-alpha.1
+release=v0.3.1-alpha.1
 curl -L https://github.com/cybwan/f4gw/releases/download/${release}/f4gw-${release}-${system}-${arch}.tar.gz | tar -vxzf -
 cd ./${system}-${arch}
 
