@@ -16,7 +16,7 @@
           "viaLinkName": "ens33",
           "viaLinkAddr": "192.168.127.22",
           "ipv4": "192.168.127.31",
-          "port": 80
+          "port": 0
         }
       ]
     },
@@ -44,7 +44,7 @@
           "viaLinkName": "ens33",
           "viaLinkAddr": "192.168.127.22",
           "ipv4": "192.168.127.31",
-          "port": 80
+          "port": 53
         }
       ]
     }
