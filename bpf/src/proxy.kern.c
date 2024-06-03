@@ -51,11 +51,11 @@ int xdp_ingress(struct xdp_md *ctx) {
 
     okey.v6 = 0;
     okey.l4proto = xf->f4m.l4proto;
-    okey.xaddr4 = xf->f4m.xaddr4;
+    okey.xaddr = xf->f4m.xaddr4;
     okey.xport = xf->f4m.xport;
 
-    oact.daddr4 = xf->f4m.daddr4;
-    oact.saddr4 = xf->f4m.saddr4;
+    oact.daddr = xf->f4m.daddr4;
+    oact.saddr = xf->f4m.saddr4;
     oact.dport = xf->f4m.dport;
     oact.sport = xf->f4m.sport;
 
@@ -64,9 +64,9 @@ int xdp_ingress(struct xdp_md *ctx) {
     
     debug_printf("==================================\n");
     debug_printf("f4m proto %d \t ipv6(?) %d\n", okey.l4proto, okey.v6);
-    debug_printf("f4m daddr %pI4 dport %d\n", &oact.daddr4, ntohs(oact.dport));
-    debug_printf("f4m saddr %pI4 sport %d\n", &oact.saddr4, ntohs(oact.sport));
-    debug_printf("f4m xaddr %pI4 xport %d\n", &okey.xaddr4, ntohs(okey.xport));
+    debug_printf("f4m daddr %pI4 dport %d\n", &oact.daddr, ntohs(oact.dport));
+    debug_printf("f4m saddr %pI4 sport %d\n", &oact.saddr, ntohs(oact.sport));
+    debug_printf("f4m xaddr %pI4 xport %d\n", &okey.xaddr, ntohs(okey.xport));
   }
 
   return DP_PASS;
