@@ -1,10 +1,11 @@
-var port = '0.0.0.0:8000'
-var mapName = 'map_name'
+var tcpProxyPort = '0.0.0.0:8689'
+var udpProxyPort = '0.0.0.0:8688'
+var mapName = 'f4gw_nat_opts'
 var mapInfo = bpf.Map.list().find(i => i.name === mapName)
 
 if (!mapInfo) throw `map '${mapName}' not found`
 
-var map = bfp.Map.open(
+var map = bpf.Map.open(
   mapInfo.id,
   new CStruct({
     xaddr: 'uint8[4]',
@@ -22,7 +23,7 @@ var map = bfp.Map.open(
 
 var $target
 
-pipy.listen(port, 'tcp', $=>$
+pipy.listen(tcpProxyPort, 'tcp', $=>$
   .onStart(i => findOriDst(i, 6))
   .pipe(() => $target ? 'pass' : 'deny', {
     'pass': $=>$.connect(() => $target),
@@ -30,7 +31,7 @@ pipy.listen(port, 'tcp', $=>$
   })
 )
 
-pipy.listen(port, 'udp', $=>$
+pipy.listen(udpProxyPort, 'udp', $=>$
   .onStart(i => findOriDst(i, 17))
   .pipe(() => $target ? 'pass' : 'deny', {
     'pass': $=>$.connect(() => $target, { protocol: 'udp' }),
@@ -43,23 +44,16 @@ function findOriDst(inbound, proto) {
   print(`${inbound.remoteAddress}:${inbound.remotePort} => `)
   var ent = map.lookup({
     xaddr: sip.toBytes(),
-    xport: swap16(inbound.remotePort),
+    xport: inbound.remotePort,
     l4proto: proto,
     v6: 0,
   })
   if (ent) {
     var ip = new IP(ent.daddr)
-    var port = swap16(ent.dport)
+    var port = ent.dport
     $target = `${ip}:${port}`
     println($target)
   } else {
     println('Not found')
   }
 }
-
-function swap16(n) {
-  var l = 0x00ff & n
-  var h = 0xff00 & n
-  return (l << 8) | (h >> 8)
-}
-
