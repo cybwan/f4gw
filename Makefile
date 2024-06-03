@@ -1,3 +1,5 @@
+SHELL = bash
+
 BASE_DIR = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 INC_DIR = $(abspath ${BASE_DIR})/bpf/include
 SRC_DIR = $(abspath ${BASE_DIR})/bpf/src
