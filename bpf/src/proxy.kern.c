@@ -51,13 +51,13 @@ int xdp_ingress(struct xdp_md *ctx) {
 
     okey.v6 = 0;
     okey.l4proto = xf->f4m.l4proto;
-    okey.xaddr = ntohl(xf->f4m.xaddr4);
-    okey.xport = xf->f4m.xport;
+    okey.xaddr = xf->f4m.xaddr4;
+    okey.xport = ntohs(xf->f4m.xport);
 
-    oact.daddr = ntohl(xf->f4m.daddr4);
+    oact.daddr = xf->f4m.daddr4;
     oact.saddr = xf->f4m.saddr4;
-    oact.dport = xf->f4m.dport;
-    oact.sport = xf->f4m.sport;
+    oact.dport = ntohs(xf->f4m.dport);
+    oact.sport = ntohs(xf->f4m.sport);
 
 
     bpf_map_update_elem(&f4gw_nat_opts, &okey, &oact, BPF_ANY);
