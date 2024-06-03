@@ -1,4 +1,6 @@
 #include <linux/bpf.h>
+#include <bpf/bpf_helpers.h>
+
 #include <linux/if_ether.h>
 #include <linux/ip.h>
 #include <linux/ipv6.h>
@@ -8,7 +10,6 @@
 #include <linux/icmp.h>
 #include <linux/icmpv6.h>
 
-#include "bpf-builtin.h"
 #include "bpf-utils.h"
 #include "bpf-config.h"
 #include "bpf-dp.h"

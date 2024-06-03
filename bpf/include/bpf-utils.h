@@ -1,6 +1,5 @@
 #ifndef __F4_BPF_UTILS_H__ 
 #define __F4_BPF_UTILS_H__
-#define SEC(name) __attribute__((section(name), used))
 #define INLINE __attribute__((__always_inline__)) static inline
 
 #define debug_printf(fmt, ...) do                              \
