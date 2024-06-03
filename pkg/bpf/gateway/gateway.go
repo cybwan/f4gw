@@ -142,7 +142,10 @@ func (gw *F4Gw) AttachEgressBPF(iface string) {
 	log.Info().Msgf("Attached XDP program to  egress iface %q (index %d)", egressIface.Name, egressIface.Index)
 }
 
-func (gw *F4Gw) ApplyNatLB(viaLink, viaIpAddr string, backends []F4GwBackend) error {
+func (gw *F4Gw) ApplyNatLB(
+	dstProto L4Proto, dstAddr string, dstPort uint16,
+	viaLink, viaIpAddr string,
+	backends []F4GwBackend) error {
 	if len(backends) == 0 {
 		return nil
 	}
@@ -152,13 +155,25 @@ func (gw *F4Gw) ApplyNatLB(viaLink, viaIpAddr string, backends []F4GwBackend) er
 		return err
 	}
 
-	viaIpNb, _ := netaddr.IPv4ToInt(net.ParseIP(viaIpAddr))
+	viaIpNb, err := netaddr.IPv4ToInt(net.ParseIP(viaIpAddr))
+	if err != nil {
+		return err
+	}
+
 	gw.bpfObjs.F4gwEgrIpv4.Delete(viaIpNb)
 
 	natKey := bpfDpNatKey{}
+	natKey.Daddr[0], err = netaddr.IPv4ToInt(net.ParseIP(dstAddr))
+	if err != nil {
+		return err
+	}
+	natKey.Dport = dstPort
+	natKey.L4proto = uint8(dstProto)
+	natKey.V6 = 0
+
 	natActs := bpfDpNatTacts{}
-	natActs.Ca.ActType = DP_SET_SNAT
-	natActs.SelType = NAT_LB_SEL_RR
+	natActs.Ca.ActType = uint8(DP_SET_SNAT)
+	natActs.SelType = uint16(NAT_LB_SEL_RR)
 
 	natActs.Nxfrm = uint16(len(backends))
 	for index, backend := range backends {
@@ -173,7 +188,10 @@ func (gw *F4Gw) ApplyNatLB(viaLink, viaIpAddr string, backends []F4GwBackend) er
 			return backendHWAddrErr
 		}
 
-		natActs.Nxfrms[index].NatRip[0], _ = netaddr.IPv4ToInt(net.ParseIP(backend.IPv4))
+		natActs.Nxfrms[index].NatRip[0], err = netaddr.IPv4ToInt(net.ParseIP(backend.IPv4))
+		if err != nil {
+			return err
+		}
 		natActs.Nxfrms[index].NatRport = netaddr.HostToNetShort(backend.Port)
 		for n := 0; n < 6; n++ {
 			natActs.Nxfrms[index].NatRmac[n] = backendHWAddr[n]

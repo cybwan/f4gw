@@ -64,9 +64,15 @@ func main() {
 	}
 
 	for _, egress := range f4gwCfg.Egress {
-		f4gw.AttachEgressBPF(egress.ViaName)
-		if err = f4gw.ApplyNatLB(egress.ViaName, egress.ViaAddr, egress.Backends); err != nil {
-			log.Error().Msg(err.Error())
+		f4gw.AttachEgressBPF(egress.ViaLinkName)
+		if err = f4gw.ApplyNatLB(
+			egress.TargetProto,
+			egress.TargetAddr,
+			egress.TargetPort,
+			egress.ViaLinkName,
+			egress.ViaLinkAddr,
+			egress.Backends); err != nil {
+			log.Fatal().Msg(err.Error())
 		}
 	}
 
