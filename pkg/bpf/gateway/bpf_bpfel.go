@@ -12,6 +12,335 @@ import (
 	"github.com/cilium/ebpf"
 )
 
+type bpfDpCtCtrtact struct {
+	Ca struct {
+		ActType uint8
+		Ftrap   uint8
+		Oaux    uint16
+		Cidx    uint32
+		Fwrid   uint32
+		Mark    uint16
+		Record  uint16
+	}
+	Lock    struct{ Val uint32 }
+	Start   uint32
+	Counter uint32
+	Entries uint32
+}
+
+type bpfDpCtKey struct {
+	Daddr   [4]uint32
+	Saddr   [4]uint32
+	Sport   uint16
+	Dport   uint16
+	Zone    uint16
+	L4proto uint8
+	V6      uint8
+}
+
+type bpfDpCtTact struct {
+	Ca struct {
+		ActType uint8
+		Ftrap   uint8
+		Oaux    uint16
+		Cidx    uint32
+		Fwrid   uint32
+		Mark    uint16
+		Record  uint16
+	}
+	Lock struct{ Val uint32 }
+	_    [4]byte
+	Ctd  struct {
+		Rid uint16
+		Aid uint16
+		Nid uint32
+		Pi  struct {
+			T struct {
+				State  uint32
+				Fndir  uint32
+				TcpCts [2]struct {
+					Hstate   uint16
+					InitAcks uint16
+					Seq      uint32
+					Pack     uint32
+					Pseq     uint32
+				}
+			}
+			Frag  uint16
+			Npmhh uint16
+			Pmhh  [4]uint32
+			L3i   struct{ State uint32 }
+		}
+		Dir uint32
+		Smr uint32
+		Xi  struct {
+			NatFlags uint8
+			Inactive uint8
+			Wprio    uint8
+			Nv6      uint8
+			Dsr      uint8
+			Padding  uint8
+			NatXifi  uint16
+			NatXport uint16
+			NatRport uint16
+			NatXip   [4]uint32
+			NatRip   [4]uint32
+			NatXmac  [6]uint8
+			NatRmac  [6]uint8
+			Osp      uint16
+			Odp      uint16
+		}
+		_  [4]byte
+		Pb struct {
+			Bytes   uint64
+			Packets uint64
+		}
+	}
+	Ito     uint64
+	Lts     uint64
+	PortAct struct {
+		Oport uint16
+		Fr    uint16
+	}
+	_ [60]byte
+}
+
+type bpfDpFcTacts struct {
+	Ca struct {
+		ActType uint8
+		Ftrap   uint8
+		Oaux    uint16
+		Cidx    uint32
+		Fwrid   uint32
+		Mark    uint16
+		Record  uint16
+	}
+	Its  uint64
+	Zone uint32
+	Pad  uint16
+	Pten uint16
+	Fcta [7]struct {
+		Ca struct {
+			ActType uint8
+			Ftrap   uint8
+			Oaux    uint16
+			Cidx    uint32
+			Fwrid   uint32
+			Mark    uint16
+			Record  uint16
+		}
+		PortAct struct {
+			Oport uint16
+			Fr    uint16
+		}
+		_ [60]byte
+	}
+}
+
+type bpfDpFcv4Key struct {
+	Daddr   uint32
+	Saddr   uint32
+	Sport   uint16
+	Dport   uint16
+	L4proto uint8
+	Pad     uint8
+	InPort  uint16
+}
+
+type bpfDpNatEpacts struct {
+	Ca struct {
+		ActType uint8
+		Ftrap   uint8
+		Oaux    uint16
+		Cidx    uint32
+		Fwrid   uint32
+		Mark    uint16
+		Record  uint16
+	}
+	Lock       struct{ Val uint32 }
+	ActiveSess [16]uint32
+}
+
+type bpfDpNatKey struct {
+	Daddr   [4]uint32
+	Dport   uint16
+	Zone    uint16
+	Mark    uint16
+	L4proto uint8
+	V6      uint8
+}
+
+type bpfDpNatOptKey struct {
+	Xaddr   uint32
+	Xport   uint16
+	L4proto uint8
+	V6      uint8
+}
+
+type bpfDpNatOptTact struct {
+	Daddr uint32
+	Saddr uint32
+	Sport uint16
+	Dport uint16
+}
+
+type bpfDpNatTacts struct {
+	Ca struct {
+		ActType uint8
+		Ftrap   uint8
+		Oaux    uint16
+		Cidx    uint32
+		Fwrid   uint32
+		Mark    uint16
+		Record  uint16
+	}
+	Ito     uint64
+	Pto     uint64
+	Lock    struct{ Val uint32 }
+	Cdis    uint8
+	_       [1]byte
+	SelHint uint16
+	SelType uint16
+	Nxfrm   uint16
+	Nxfrms  [16]struct {
+		NatFlags uint8
+		Inactive uint8
+		Wprio    uint8
+		Nv6      uint8
+		Dsr      uint8
+		Padding  uint8
+		NatXifi  uint16
+		NatXport uint16
+		NatRport uint16
+		NatXip   [4]uint32
+		NatRip   [4]uint32
+		NatXmac  [6]uint8
+		NatRmac  [6]uint8
+		Osp      uint16
+		Odp      uint16
+	}
+	_      [4]byte
+	Lts    uint64
+	BaseTo uint64
+}
+
+type bpfXfrm struct {
+	Fm struct {
+		Dat    uint32
+		DatEnd uint32
+		Tstamp uint64
+	}
+	L2m struct {
+		Vlan    [3]uint16
+		DlType  uint16
+		DlDst   [6]uint8
+		DlSrc   [6]uint8
+		VlanPcp uint8
+		Valid   uint8
+		Ssnid   uint16
+	}
+	L34m struct {
+		Tos     uint8
+		NwProto uint8
+		Valid   uint8
+		Frg     uint8
+		Source  uint16
+		Dest    uint16
+		Seq     uint32
+		Ack     uint32
+		Saddr   [4]uint32
+		Daddr   [4]uint32
+	}
+	Il2m struct {
+		Vlan    [3]uint16
+		DlType  uint16
+		DlDst   [6]uint8
+		DlSrc   [6]uint8
+		VlanPcp uint8
+		Valid   uint8
+		Ssnid   uint16
+	}
+	Il34m struct {
+		Tos     uint8
+		NwProto uint8
+		Valid   uint8
+		Frg     uint8
+		Source  uint16
+		Dest    uint16
+		Seq     uint32
+		Ack     uint32
+		Saddr   [4]uint32
+		Daddr   [4]uint32
+	}
+	Nm struct {
+		Nxip       [4]uint32
+		Nrip       [4]uint32
+		Nxport     uint16
+		Nrport     uint16
+		Nxifi      uint16
+		Nxmac      [6]uint8
+		Nrmac      [6]uint8
+		CtSts      uint8
+		SelAid     uint8
+		Nv6        uint8
+		XlateProto uint8
+		Dsr        uint8
+		Cdis       uint8
+		Ito        uint64
+	}
+	F4m struct {
+		L4proto uint8
+		_       [1]byte
+		Sport   uint16
+		Dport   uint16
+		Xport   uint16
+		Saddr   [4]uint32
+		Daddr   [4]uint32
+		Xaddr   [4]uint32
+	}
+	Pm struct {
+		Bd        uint16
+		PyBytes   uint16
+		PipeAct   uint8
+		L3Off     uint8
+		Phit      uint16
+		NhNum     uint16
+		QosId     uint16
+		Rcode     uint32
+		Ifi       uint32
+		_         [1]byte /* unsupported bitfield */
+		Tc        uint8
+		Pprop     uint8
+		LkupDmac  [6]uint8
+		Iport     uint16
+		Oport     uint16
+		Zone      uint16
+		L4Off     uint8
+		TableId   uint8
+		Sseid     uint64
+		Dseid     uint64
+		Mirr      uint16
+		TcpFlags  uint8
+		Nf        uint8
+		RuleId    uint16
+		L3Adj     int16
+		Il3Off    uint8
+		Il4Off    uint8
+		ItcpFlags uint8
+		_         [1]byte /* unsupported bitfield */
+		L3Len     uint16
+		L3Plen    uint16
+		Il3Len    uint16
+		Il3Plen   uint16
+		DpMark    uint16
+		DpRec     uint16
+		TunOff    uint16
+		FwMid     uint16
+		FwLid     uint16
+		FwRid     uint16
+	}
+}
+
 // loadBpf returns the embedded CollectionSpec for bpf.
 func loadBpf() (*ebpf.CollectionSpec, error) {
 	reader := bytes.NewReader(_BpfBytes)
