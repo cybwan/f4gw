@@ -156,13 +156,13 @@ func (gw *F4Gw) ApplyNatLB(
 		return err
 	}
 
-	natKey := bpfDpNatKey{}
+	natKey := DpNatKey{}
 	natKey.Daddr[0] = dstAddrNb
 	natKey.Dport = dstPort
 	natKey.L4proto = uint8(dstProto)
 	natKey.V6 = 0
 
-	natActs := bpfDpNatTacts{}
+	natActs := DpNatTacts{}
 	natActs.Ca.ActType = uint8(DP_SET_SNAT)
 	natActs.SelType = uint16(NAT_LB_SEL_RR)
 
