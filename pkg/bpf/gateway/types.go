@@ -17,11 +17,7 @@ const (
 type NatActionType uint8
 
 const (
-	NAT_LB_SEL_RR         LbSelector = 0
-	NAT_LB_SEL_HASH       LbSelector = 1
-	NAT_LB_SEL_PRIO       LbSelector = 2
-	NAT_LB_SEL_RR_PERSIST LbSelector = 3
-	NAT_LB_SEL_LC         LbSelector = 4
+	NAT_LB_SEL_RR LbSelector = 0
 )
 
 type LbSelector uint16

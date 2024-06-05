@@ -523,4 +523,22 @@ dp_tail_call(void *ctx,  struct xfrm *xf, void *fa, __u32 idx)
   return DP_PASS;
 }
 
+static int __always_inline
+dp_spin_lock(struct bpf_spin_lock *lock) {
+#ifndef F4_SPIN_LOCK_OFF
+  bpf_spin_lock(lock);
+#endif
+  // __sync_fetch_and_add(&lock->val, 1);
+  return 0;
+}
+
+static int __always_inline
+dp_spin_unlock(struct bpf_spin_lock *lock) {
+#ifndef F4_SPIN_LOCK_OFF
+  bpf_spin_unlock(lock);
+#endif
+  // __sync_lock_release(&lock->val);
+  return 0;
+}
+
 #endif
