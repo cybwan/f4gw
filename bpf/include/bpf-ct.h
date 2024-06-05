@@ -53,13 +53,13 @@ dp_ct_get_newctr(__u32 *nid)
   /* FIXME - We can potentially do a percpu array and do away
    *         with the locking here
    */ 
-  bpf_spin_lock(&ctr->lock);
+  dp_spin_lock(&ctr->lock);
   v = ctr->counter;
   ctr->counter += 2;
   if (ctr->counter >= ctr->entries) {
     ctr->counter = ctr->start;
   }
-  bpf_spin_unlock(&ctr->lock);
+  dp_spin_unlock(&ctr->lock);
 
   return v;
 }
@@ -196,7 +196,7 @@ dp_ct_tcp_sm(void *ctx, struct xfrm *xf,
   seq = ntohl(t->seq);
   ack = ntohl(t->ack_seq);
 
-  bpf_spin_lock(&atdat->lock);
+  dp_spin_lock(&atdat->lock);
 
   if (dir == CT_DIR_IN) {
     tdat->pi.t.tcp_cts[0].pseq = t->seq;
@@ -374,7 +374,7 @@ end:
     xtdat->pi.t.tcp_cts[0].seq = seq;
   }
 
-  bpf_spin_unlock(&atdat->lock);
+  dp_spin_unlock(&atdat->lock);
 
   if (nstate == CT_TCP_EST) {
     return CT_SMR_EST;
@@ -401,7 +401,7 @@ dp_ct_udp_sm(void *ctx, struct xfrm *xf,
   ct_udp_pinf_t *xus = &xtdat->pi.u;
   __u32 nstate = us->state;
 
-  bpf_spin_lock(&atdat->lock);
+  dp_spin_lock(&atdat->lock);
 
   if (dir == CT_DIR_IN) {
     tdat->pb.bytes += xf->pm.l3_len;
@@ -450,7 +450,7 @@ dp_ct_udp_sm(void *ctx, struct xfrm *xf,
   us->state = nstate;
   xus->state = nstate;
 
-  bpf_spin_unlock(&atdat->lock);
+  dp_spin_unlock(&atdat->lock);
 
   if (nstate == CT_UDP_UEST)
     return CT_SMR_UEST;
@@ -490,7 +490,7 @@ dp_ct_icmp_sm(void *ctx, struct xfrm *xf,
    */
   seq = ntohs(i->un.echo.sequence);
 
-  bpf_spin_lock(&atdat->lock);
+  dp_spin_lock(&atdat->lock);
 
   if (dir == CT_DIR_IN) {
     tdat->pb.bytes += xf->pm.l3_len;
@@ -557,7 +557,7 @@ end:
   is->state = nstate;
   xis->state = nstate;
 
-  bpf_spin_unlock(&atdat->lock);
+  dp_spin_unlock(&atdat->lock);
 
   if (nstate == CT_ICMP_REPS)
     return CT_SMR_EST;
@@ -591,7 +591,7 @@ dp_ct_icmp6_sm(void *ctx, struct xfrm *xf,
    */
   seq = ntohs(i->icmp6_dataun.u_echo.sequence);
 
-  bpf_spin_lock(&atdat->lock);
+  dp_spin_lock(&atdat->lock);
 
   if (dir == CT_DIR_IN) {
     tdat->pb.bytes += xf->pm.l3_len;
@@ -654,7 +654,7 @@ end:
   is->state = nstate;
   xis->state = nstate;
 
-  bpf_spin_unlock(&atdat->lock);
+  dp_spin_unlock(&atdat->lock);
 
   if (nstate == CT_ICMP_REPS)
     return CT_SMR_EST;

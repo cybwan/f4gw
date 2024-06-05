@@ -31,7 +31,7 @@ dp_sel_nat_ep(void *ctx, struct xfrm *xf, struct dp_nat_tacts *act)
   __u16 rule_num = act->ca.cidx;
 
   if (act->sel_type == NAT_LB_SEL_RR) {
-    bpf_spin_lock(&act->lock);
+    dp_spin_lock(&act->lock);
     i = act->sel_hint; 
 
     while (n < F4_MAX_NXFRMS) {
@@ -47,7 +47,7 @@ dp_sel_nat_ep(void *ctx, struct xfrm *xf, struct dp_nat_tacts *act)
       i = i % act->nxfrm;
       n++;
     }
-    bpf_spin_unlock(&act->lock);
+    dp_spin_unlock(&act->lock);
   } else if (act->sel_type == NAT_LB_SEL_HASH) {
     sel = dp_get_pkt_hash(ctx) % act->nxfrm;
     if (sel >= 0 && sel < F4_MAX_NXFRMS) {
@@ -66,7 +66,7 @@ dp_sel_nat_ep(void *ctx, struct xfrm *xf, struct dp_nat_tacts *act)
     __u64 base;
     __u64 tfc = 0;
 
-    bpf_spin_lock(&act->lock);
+    dp_spin_lock(&act->lock);
     if (act->base_to == 0 || now - act->lts > act->pto) {
       act->base_to = (now/act->pto) * act->pto;
     }
@@ -80,7 +80,7 @@ dp_sel_nat_ep(void *ctx, struct xfrm *xf, struct dp_nat_tacts *act)
     sel = (xf->l34m.saddr4 & 0xff) ^  ((xf->l34m.saddr4 >> 24) & 0xff) ^ (tfc & 0xff);
     sel %= act->nxfrm;
     act->lts = now;
-    bpf_spin_unlock(&act->lock);
+    dp_spin_unlock(&act->lock);
   } else if (act->sel_type == NAT_LB_SEL_LC) {
     struct dp_nat_epacts *epa;
     __u32 key = rule_num;
@@ -88,7 +88,7 @@ dp_sel_nat_ep(void *ctx, struct xfrm *xf, struct dp_nat_tacts *act)
     epa = bpf_map_lookup_elem(&f4gw_nat_ep, &key);
     if (epa != NULL) {
       epa->ca.act_type = DP_SET_NACT_SESS;
-      bpf_spin_lock(&epa->lock);
+      dp_spin_lock(&epa->lock);
       for (i = 0; i < F4_MAX_NXFRMS; i++) {
         __u32 as = epa->active_sess[i];
         if (sel < 0) {
@@ -104,7 +104,7 @@ dp_sel_nat_ep(void *ctx, struct xfrm *xf, struct dp_nat_tacts *act)
       if (sel >= 0 && sel < F4_MAX_NXFRMS) {
         epa->active_sess[sel]++;
       }
-      bpf_spin_unlock(&epa->lock);
+      dp_spin_unlock(&epa->lock);
     }
   }
 
