@@ -10,6 +10,7 @@ struct bpf_map_def SEC("maps") f4gw_progs = {
   .key_size = sizeof(__u32),
   .value_size = sizeof(__u32),
   .max_entries = F4_PGM_MAP_ENTRIES,
+  //.pinning = 1,
 };
 #else /* New BTF definitions */
 struct {
@@ -85,7 +86,7 @@ struct {
   __type(value,       struct dp_fc_tacts);
   __uint(max_entries, F4_FCV4_MAP_ENTRIES);
   __uint(map_flags,   BPF_F_NO_PREALLOC);
-  __uint(pinning,     1);
+  // __uint(pinning,     1);
 } f4gw_fc_v4 SEC(".maps");
 #endif
 
