@@ -27,6 +27,26 @@ BPF_CFLAGS = \
 	-Wno-pointer-sign     \
 	-Wno-compare-distinct-pointer-types
 
+LIBBPF_SRC = $(abspath ./bpf/libbpf/src)
+LIBBPF_OBJ = $(abspath ./bpf/lib/libbpf.a)
+LIBBPF_OBJDIR = $(abspath ./bpf/lib/libbpf)
+LIBBPF_DESTDIR = $(abspath ./bpf/lib)
+
+CGO_CFLAGS_STATIC = "-I$(abspath bpf/lib)"
+CGO_LDFLAGS_STATIC = "-lelf -lz $(LIBBPF_OBJ)"
+CGO_EXTLDFLAGS_STATIC = '-w -extldflags "-static"'
+
+CGO_CFGLAGS_DYN = "-I. -I/usr/include/"
+CGO_LDFLAGS_DYN = "-lelf -lz -lbpf"
+
+$(LIBBPF_SRC):
+ifeq ($(wildcard $@), )
+	echo "INFO: updating submodule 'libbpf'"
+	wget https://github.com/libbpf/libbpf/archive/refs/tags/v0.8.3.tar.gz
+	tar zxf v0.8.3.tar.gz
+	mv libbpf-0.8.3 ./bpf/libbpf
+endif
+
 .PHONY: bpf-fmt
 bpf-fmt:
 	find . -regex '.*\.\(c\|h\)' -exec clang-format -style=file -i {} \;
