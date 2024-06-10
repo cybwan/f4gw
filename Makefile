@@ -47,6 +47,14 @@ ifeq ($(wildcard $@), )
 	mv libbpf-0.8.3 ./bpf/libbpf
 endif
 
+$(LIBBPF_OBJ): $(LIBBPF_SRC) $(wildcard $(LIBBPF_SRC)/*.[ch]) | ./bpf/lib/libbpf
+	CC="$(CC)" CFLAGS="$(CFLAGS)" LD_FLAGS="$(LDFLAGS)" \
+	   $(MAKE) -C $(LIBBPF_SRC) \
+		BUILD_STATIC_ONLY=1 \
+		OBJDIR=$(LIBBPF_OBJDIR) \
+		DESTDIR=$(LIBBPF_DESTDIR) \
+		INCLUDEDIR= LIBDIR= UAPIDIR= install
+
 .PHONY: bpf-fmt
 bpf-fmt:
 	find . -regex '.*\.\(c\|h\)' -exec clang-format -style=file -i {} \;
