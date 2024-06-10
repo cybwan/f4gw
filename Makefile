@@ -27,17 +27,30 @@ BPF_CFLAGS = \
 	-Wno-pointer-sign     \
 	-Wno-compare-distinct-pointer-types
 
-LIBBPF_SRC = $(abspath ./bpf/libbpf/src)
-LIBBPF_OBJ = $(abspath ./bpf/lib/libbpf.a)
-LIBBPF_OBJDIR = $(abspath ./bpf/lib/libbpf)
-LIBBPF_DESTDIR = $(abspath ./bpf/lib)
+OUTPUT = ./bpf/lib
 
-CGO_CFLAGS_STATIC = "-I$(abspath bpf/lib)"
+LIBBPF_SRC = $(abspath ./bpf/libbpf/src)
+LIBBPF_OBJ = $(abspath ./$(OUTPUT)/libbpf.a)
+LIBBPF_OBJDIR = $(abspath ./$(OUTPUT)/libbpf)
+LIBBPF_DESTDIR = $(abspath ./$(OUTPUT))
+
+CGO_CFLAGS_STATIC = "-I$(abspath $(OUTPUT))"
 CGO_LDFLAGS_STATIC = "-lelf -lz $(LIBBPF_OBJ)"
 CGO_EXTLDFLAGS_STATIC = '-w -extldflags "-static"'
 
 CGO_CFGLAGS_DYN = "-I. -I/usr/include/"
 CGO_LDFLAGS_DYN = "-lelf -lz -lbpf"
+
+.PHONY: libbpf-static
+libbpf-static: $(LIBBPF_OBJ)
+
+$(LIBBPF_OBJ): $(LIBBPF_SRC) $(wildcard $(LIBBPF_SRC)/*.[ch]) | $(OUTPUT)/libbpf
+	CC="$(CC)" CFLAGS="$(CFLAGS)" LD_FLAGS="$(LDFLAGS)" \
+	   $(MAKE) -C $(LIBBPF_SRC) \
+		BUILD_STATIC_ONLY=1 \
+		OBJDIR=$(LIBBPF_OBJDIR) \
+		DESTDIR=$(LIBBPF_DESTDIR) \
+		INCLUDEDIR= LIBDIR= UAPIDIR= install
 
 $(LIBBPF_SRC):
 ifeq ($(wildcard $@), )
@@ -45,15 +58,16 @@ ifeq ($(wildcard $@), )
 	wget https://github.com/libbpf/libbpf/archive/refs/tags/v0.8.3.tar.gz
 	tar zxf v0.8.3.tar.gz
 	mv libbpf-0.8.3 ./bpf/libbpf
+	rm -rf v0.8.3.tar.gz
 endif
 
-$(LIBBPF_OBJ): $(LIBBPF_SRC) $(wildcard $(LIBBPF_SRC)/*.[ch]) | ./bpf/lib/libbpf
-	CC="$(CC)" CFLAGS="$(CFLAGS)" LD_FLAGS="$(LDFLAGS)" \
-	   $(MAKE) -C $(LIBBPF_SRC) \
-		BUILD_STATIC_ONLY=1 \
-		OBJDIR=$(LIBBPF_OBJDIR) \
-		DESTDIR=$(LIBBPF_DESTDIR) \
-		INCLUDEDIR= LIBDIR= UAPIDIR= install
+# output
+
+$(OUTPUT):
+	mkdir -p $(OUTPUT)
+
+$(OUTPUT)/libbpf:
+	mkdir -p $(OUTPUT)/libbpf
 
 .PHONY: bpf-fmt
 bpf-fmt:
@@ -140,7 +154,7 @@ dist:
 release-artifacts: build-cross dist
 
 .PHONY: release
-VERSION_REGEXP := ^v[0-9]+\.[0-9]+\.[0-9]+(\-(alpha|beta|rc|kylinx)\.[0-9]+)?$
+VERSION_REGEXP := ^v[0-9]+\.[0-9]+\.[0-9]+(\-(alpha|beta|rc)\.[0-9]+)?$
 release: ## Create a release tag, push to git repository and trigger the release workflow.
 ifeq (,$(RELEASE_VERSION))
 	$(error "RELEASE_VERSION must be set to tag HEAD")
