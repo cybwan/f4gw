@@ -3,7 +3,6 @@ package main
 import "C"
 import (
 	"fmt"
-	"time"
 
 	"github.com/cybwan/f4gw/pkg/libbpf"
 )
@@ -22,13 +21,19 @@ func main() {
 		return
 	}
 
+	err = libbpf.DetachXDP(`lo`)
+	if err != nil {
+		fmt.Println("AttachXDP", err.Error())
+		return
+	}
+
 	err = libbpf.AttachXDP(`lo`, `/sys/fs/bpf/gateway/xdp_ingress`)
 	if err != nil {
 		fmt.Println("AttachXDP", err.Error())
 		return
 	}
 
-	time.Sleep(time.Second * 3600)
+	//time.Sleep(time.Second * 3600)
 
 	//err = libbpf.UnloadAll(`/sys/fs/bpf`, `gateway`)
 	//if err != nil {
