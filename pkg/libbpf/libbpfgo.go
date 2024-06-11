@@ -8,6 +8,7 @@ import "C"
 
 import (
 	"fmt"
+	"os/exec"
 	"path/filepath"
 	"syscall"
 	"unsafe"
@@ -124,4 +125,22 @@ func MountBpfFS(path string) (bool, error) {
 	defer C.free(unsafe.Pointer(absPathC))
 	ret := C.cgo_mount_bpffs(absPathC)
 	return ret == 0, nil
+}
+
+const (
+	bpftool = `/usr/sbin/bpftool`
+)
+
+func LoadAll(bpffs, progName, progFile string) error {
+	args := []string{
+		`prog`,
+		`loadall`,
+		`/root/gateway.kern.o`,
+		`/sys/fs/bpf/gateway`,
+		`pinmaps`,
+		`/sys/fs/bpf`,
+	}
+	cmd := exec.Command(bpftool, args...)
+	_, err := cmd.Output()
+	return err
 }

@@ -3,7 +3,6 @@ package main
 import "C"
 import (
 	"fmt"
-	"os/exec"
 
 	"github.com/cybwan/f4gw/pkg/libbpf"
 )
@@ -16,16 +15,11 @@ func main() {
 	numPossibleCPUs, _ := libbpf.NumPossibleCPUs()
 	fmt.Println("numPossibleCPUs:", numPossibleCPUs)
 
-	cmd := exec.Command(`/usr/sbin/bpftool`, `prog`, `loadall`, `/root/gateway.kern.o`, `/sys/fs/bpf/gateway`, `pinmaps`, `/sys/fs/bpf`)
-	stdout, err := cmd.Output()
-
+	err = libbpf.LoadAll(`/sys/fs/bpf`, `gateway`, `/root/gateway.kern.o`)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
-
-	// Print the output
-	fmt.Println(string(stdout))
 
 	//test_fd, _ := libbpf.OpenObjPinned("/sys/fs/bpf/f4gw_progs")
 	//fmt.Println("test_fd:", test_fd)
