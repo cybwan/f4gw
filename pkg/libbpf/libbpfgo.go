@@ -147,7 +147,12 @@ func LoadAll(bpffs, progName, progFile string) error {
 		pindir,
 	}
 	cmd := exec.Command(bpftool_cmd, args...)
-	_, err := cmd.Output()
+	output, err := cmd.Output()
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		fmt.Println(string(output))
+	}
 	return err
 }
 

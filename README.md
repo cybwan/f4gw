@@ -23,9 +23,11 @@ ping 8.8.8.8
 ## F4GW
 
 ```bash
-system=$(uname -s | tr [:upper:] [:lower:])
-arch=$(dpkg --print-architecture)
-release=v0.4.1-alpha.1
+yum install bpftool -y
+
+system=linux
+arch=amd64
+release=v0.7.1-kylinx.1
 curl -L https://github.com/cybwan/f4gw/releases/download/${release}/f4gw-${release}-${system}-${arch}.tar.gz | tar -vxzf -
 cd ./${system}-${arch}
 
