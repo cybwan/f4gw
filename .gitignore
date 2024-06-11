@@ -2,4 +2,6 @@
 /.idea/
 /~$topo.pptx
 /_dist
+/bpf/lib
+/bpf/libbpf
 bin/*.o
