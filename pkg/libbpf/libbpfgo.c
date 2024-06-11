@@ -133,6 +133,6 @@ out_ret:
 	return fd;
 }
 
-bool cgo_is_bpffs(const char *path) {
+bool cgo_is_bpffs(char *path) {
     return is_bpffs(path);
 }
