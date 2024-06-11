@@ -8,7 +8,6 @@ import "C"
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"syscall"
@@ -133,17 +132,14 @@ const (
 )
 
 func LoadAll(bpffs, progName, progFile string) error {
-	pinmapsDir := fmt.Sprintf("%s/%s.maps", bpffs, progName)
-	if err := os.Mkdir(pinmapsDir, 0700); err != nil {
-		return err
-	}
+	pinDir := fmt.Sprintf("%s/%s", bpffs, progName)
 	args := []string{
 		`prog`,
 		`loadall`,
 		progFile,
-		fmt.Sprintf("%s/%s", bpffs, progName),
+		pinDir,
 		`pinmaps`,
-		pinmapsDir,
+		pinDir,
 	}
 	cmd := exec.Command(bpftool, args...)
 	_, err := cmd.Output()
