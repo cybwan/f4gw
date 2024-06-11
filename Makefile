@@ -72,7 +72,7 @@ test-build: $(LIBBPF_OBJ)
 		CGO_LDFLAGS=$(CGO_LDFLAGS_STATIC) \
 		GOOS=linux GOARCH=$(ARCH) \
 		$(GO) build \
-		-tags netgo -ldflags $(CGO_EXTLDFLAGS_STATIC) \
+		-ldflags $(CGO_EXTLDFLAGS_STATIC) \
 		-o ./bin/test ./cmd/test
 
 # output
