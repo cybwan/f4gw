@@ -65,7 +65,6 @@ int cgo_mount_bpffs(const char *name)
 {
 	char err_str[ERR_MAX_LEN];
 	char *file;
-	char *dir;
 	int err = 0;
 
 	file = malloc(strlen(name) + 1);
@@ -75,13 +74,12 @@ int cgo_mount_bpffs(const char *name)
 	}
 
 	strcpy(file, name);
-	dir = dirname(file);
 
-	if (is_bpffs(dir))
+	if (is_bpffs(file))
 		/* nothing to do if already mounted */
 		goto out_free;
 
-	err = mnt_fs(dir, "bpf", err_str, ERR_MAX_LEN);
+	err = mnt_fs(file, "bpf", err_str, ERR_MAX_LEN);
 	if (err) {
 		err_str[ERR_MAX_LEN - 1] = '\0';
 		p_err("can't mount BPF file system to pin the object (%s): %s",
