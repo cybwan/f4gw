@@ -21,6 +21,12 @@ func main() {
 		return
 	}
 
+	err = libbpf.UnloadAll(`/sys/fs/bpf`, `gateway`)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
 	//test_fd, _ := libbpf.OpenObjPinned("/sys/fs/bpf/f4gw_progs")
 	//fmt.Println("test_fd:", test_fd)
 	//

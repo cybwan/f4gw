@@ -145,3 +145,14 @@ func LoadAll(bpffs, progName, progFile string) error {
 	_, err := cmd.Output()
 	return err
 }
+
+func UnloadAll(bpffs, progName string) error {
+	pinDir := fmt.Sprintf("%s/%s", bpffs, progName)
+	args := []string{
+		`-rf`,
+		pinDir,
+	}
+	cmd := exec.Command(`/usr/bin/rm`, args...)
+	_, err := cmd.Output()
+	return err
+}
