@@ -171,7 +171,7 @@ dist:
 release-artifacts: dist
 
 .PHONY: release
-VERSION_REGEXP := ^v[0-9]+\.[0-9]+\.[0-9]+(\-(alpha|beta|rc)\.[0-9]+)?$
+VERSION_REGEXP := ^v[0-9]+\.[0-9]+\.[0-9]+(\-(kylinx)\.[0-9]+)?$
 release: ## Create a release tag, push to git repository and trigger the release workflow.
 ifeq (,$(RELEASE_VERSION))
 	$(error "RELEASE_VERSION must be set to tag HEAD")
