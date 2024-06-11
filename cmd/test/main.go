@@ -18,7 +18,7 @@ func main() {
 
 	err = libbpf.LoadAll(`/sys/fs/bpf`, `gateway`, `/root/gateway.kern.o`)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println("LoadAll", err.Error())
 		return
 	}
 
