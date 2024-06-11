@@ -7,6 +7,8 @@ var (
 )
 
 type F4Proxy struct {
+	prog           string
+	progFile       string
 	cleanCallbacks map[string]func() error
 }
 

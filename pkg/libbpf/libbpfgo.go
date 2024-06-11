@@ -11,8 +11,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 	"syscall"
 	"unsafe"
+
+	"golang.org/x/sys/unix"
 )
 
 //
@@ -180,4 +183,21 @@ func DetachXDP(dev string) error {
 	cmd := exec.Command(ip_cmd, args...)
 	_, err := cmd.Output()
 	return err
+}
+
+var (
+	rlimitMu sync.Mutex
+)
+
+func RemoveMemlock() error {
+	rlimitMu.Lock()
+	defer rlimitMu.Unlock()
+
+	// pid 0 affects the current process. Requires CAP_SYS_RESOURCE.
+	newLimit := unix.Rlimit{Cur: unix.RLIM_INFINITY, Max: unix.RLIM_INFINITY}
+	if err := unix.Prlimit(0, unix.RLIMIT_MEMLOCK, &newLimit, nil); err != nil {
+		return fmt.Errorf("failed to set memlock rlimit: %w", err)
+	}
+
+	return nil
 }

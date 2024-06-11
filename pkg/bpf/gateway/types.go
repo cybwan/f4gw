@@ -3,10 +3,10 @@ package gateway
 import "github.com/cybwan/f4gw/pkg/logger"
 
 const (
-	FLM_DP_PKT_SLOW_PGM_ID = int32(1)
-	FLM_DP_CT_PGM_ID       = int32(2)
-	FLM_DP_PASS_PGM_ID     = int32(3)
-	FLM_DP_DROP_PGM_ID     = int32(4)
+	FLM_DP_PKT_SLOW_PGM_ID = uint32(1)
+	FLM_DP_CT_PGM_ID       = uint32(2)
+	FLM_DP_PASS_PGM_ID     = uint32(3)
+	FLM_DP_DROP_PGM_ID     = uint32(4)
 )
 
 const (
@@ -35,8 +35,9 @@ var (
 )
 
 type F4Gw struct {
-	cleanCallbacks map[string]func() error
-
+	prog             string
+	progFile         string
+	cleanCallbacks   map[string]func() error
 	attachedXdpLinks map[string]uint8
 }
 
