@@ -152,7 +152,7 @@ endif
 .PHONY: dist
 dist:
 	( \
-		mkdir _dist && cd _dist && \
+		mkdir -p _dist/linux-amd64 && cd _dist && \
 		$(DIST_DIRS) cp ../LICENSE {} \; && \
 		$(DIST_DIRS) cp ../README.md {} \; && \
 		$(DIST_DIRS) cp ../bin/gw.json {} \; && \
