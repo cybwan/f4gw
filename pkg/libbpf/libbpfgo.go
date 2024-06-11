@@ -136,9 +136,9 @@ func LoadAll(bpffs, progName, progFile string) error {
 		`prog`,
 		`loadall`,
 		`/root/gateway.kern.o`,
-		`/sys/fs/bpf/gateway`,
+		fmt.Sprintf("%s/%s", bpffs, progName),
 		`pinmaps`,
-		`/sys/fs/bpf`,
+		fmt.Sprintf("%s/%s.maps", bpffs, progName),
 	}
 	cmd := exec.Command(bpftool, args...)
 	_, err := cmd.Output()
