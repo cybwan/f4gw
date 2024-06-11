@@ -16,7 +16,7 @@ func main() {
 	numPossibleCPUs, _ := libbpf.NumPossibleCPUs()
 	fmt.Println("numPossibleCPUs:", numPossibleCPUs)
 
-	cmd := exec.Command(`bpftool prog loadall ~/gateway.kern.o /sys/fs/bpf/gateway pinmaps /sys/fs/bpf`)
+	cmd := exec.Command(`/usr/sbin/bpftool prog loadall ~/gateway.kern.o /sys/fs/bpf/gateway pinmaps /sys/fs/bpf`)
 	stdout, err := cmd.Output()
 
 	if err != nil {
