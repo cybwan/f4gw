@@ -43,7 +43,7 @@ func main() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	kylibbpfgo.Memcpy(unsafe.Pointer(&natActs), unsafe.Pointer(&bytes[0]), 1024)
+	libbpf.Memcpy(unsafe.Pointer(&natActs), unsafe.Pointer(&bytes[0]), 1024)
 	fmt.Println(natActs.Ca.ActType)
 
 	nat_map.Close()
