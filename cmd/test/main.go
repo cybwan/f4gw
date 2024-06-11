@@ -15,6 +15,12 @@ func main() {
 	numPossibleCPUs, _ := libbpf.NumPossibleCPUs()
 	fmt.Println("numPossibleCPUs:", numPossibleCPUs)
 
+	err = libbpf.UnloadAll(`/sys/fs/bpf`, `gateway`)
+	if err != nil {
+		fmt.Println("LoadAll", err.Error())
+		return
+	}
+
 	err = libbpf.LoadAll(`/sys/fs/bpf`, `gateway`, `/root/gateway.kern.o`)
 	if err != nil {
 		fmt.Println("LoadAll", err.Error())
