@@ -3,54 +3,53 @@ package main
 import "C"
 import (
 	"fmt"
-	"unsafe"
 
 	"github.com/cybwan/f4gw/pkg/libbpf"
 )
 
 func main() {
-	ret, err := libbpf.MountBpfFS("/sys/fs/bpf")
-	fmt.Println(ret, err)
+	//ret, err := libbpf.MountBpfFS("/sys/fs/bpf")
+	//fmt.Println(ret, err)
 	bpffs := libbpf.IsBpfFS("/sys/fs/bpf")
 	fmt.Println("bpffs:", bpffs)
 	numPossibleCPUs, _ := libbpf.NumPossibleCPUs()
 	fmt.Println("numPossibleCPUs:", numPossibleCPUs)
 
-	test_fd, _ := libbpf.OpenObjPinned("/sys/fs/bpf/f4gw_progs")
-	fmt.Println("test_fd:", test_fd)
-
-	egress_fd, _ := libbpf.OpenObjPinned("/sys/fs/bpf/gateway/xdp_egress")
-	fmt.Println("ingress_fd:", egress_fd)
-
-	nat_map, _ := libbpf.GetMapByPinnedPath("/sys/fs/bpf/f4gw_nat")
-	fmt.Println("nat_map_fd:", nat_map)
-
-	k := uint32(2)
-	if err := nat_map.Update(unsafe.Pointer(&k), unsafe.Pointer(&egress_fd)); err != nil {
-		fmt.Println(err.Error())
-	}
-
-	natKey := DpNatKey{}
-	natKey.Dport = 88
-	natKey.L4proto = 6
-	natKey.V6 = 0
-
-	natActs := DpNatTacts{}
-	natActs.Ca.ActType = 99
-	natActs.Ito = 88888
-
-	if err := nat_map.Update(unsafe.Pointer(&natKey), unsafe.Pointer(&natActs)); err != nil {
-		fmt.Println(err.Error())
-	}
-
-	bytes, err := nat_map.GetValue(unsafe.Pointer(&natKey))
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	libbpf.Memcpy(unsafe.Pointer(&natActs), unsafe.Pointer(&bytes[0]), 1024)
-	fmt.Println(natActs.Ca.ActType)
-
-	nat_map.Close()
+	//test_fd, _ := libbpf.OpenObjPinned("/sys/fs/bpf/f4gw_progs")
+	//fmt.Println("test_fd:", test_fd)
+	//
+	//egress_fd, _ := libbpf.OpenObjPinned("/sys/fs/bpf/gateway/xdp_egress")
+	//fmt.Println("ingress_fd:", egress_fd)
+	//
+	//nat_map, _ := libbpf.GetMapByPinnedPath("/sys/fs/bpf/f4gw_nat")
+	//fmt.Println("nat_map_fd:", nat_map)
+	//
+	//k := uint32(2)
+	//if err := nat_map.Update(unsafe.Pointer(&k), unsafe.Pointer(&egress_fd)); err != nil {
+	//	fmt.Println(err.Error())
+	//}
+	//
+	//natKey := DpNatKey{}
+	//natKey.Dport = 88
+	//natKey.L4proto = 6
+	//natKey.V6 = 0
+	//
+	//natActs := DpNatTacts{}
+	//natActs.Ca.ActType = 99
+	//natActs.Ito = 88888
+	//
+	//if err := nat_map.Update(unsafe.Pointer(&natKey), unsafe.Pointer(&natActs)); err != nil {
+	//	fmt.Println(err.Error())
+	//}
+	//
+	//bytes, err := nat_map.GetValue(unsafe.Pointer(&natKey))
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//}
+	//libbpf.Memcpy(unsafe.Pointer(&natActs), unsafe.Pointer(&bytes[0]), 1024)
+	//fmt.Println(natActs.Ca.ActType)
+	//
+	//nat_map.Close()
 }
 
 type DpNatKey struct {
