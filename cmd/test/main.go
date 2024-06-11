@@ -21,7 +21,7 @@ func main() {
 		return
 	}
 
-	err = libbpf.LoadAll(`/sys/fs/bpf`, `gateway`, `/root/gateway.kern.o`)
+	err = libbpf.LoadAll(`/sys/fs/bpf`, `gateway`, `/root/f4gw/bpf/gateway.kern`)
 	if err != nil {
 		fmt.Println("LoadAll", err.Error())
 		return
