@@ -111,6 +111,6 @@ func IsBpfFS(path string) bool {
 	absPathC := C.CString(absPath)
 	defer C.free(unsafe.Pointer(absPathC))
 	var quiet C.bool
-	valid := C.is_bpffs(absPathC, quiet)
+	valid := C.cgo_is_bpffs(absPathC, quiet)
 	return bool(valid)
 }

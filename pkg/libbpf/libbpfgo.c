@@ -132,3 +132,7 @@ out_free:
 out_ret:
 	return fd;
 }
+
+bool cgo_is_bpffs(const char *path) {
+    return is_bpffs(path);
+}
