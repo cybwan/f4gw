@@ -101,3 +101,16 @@ func OpenObjPinned(path string) (int, error) {
 	fd := C.cgo_open_obj_pinned(absPathC, quiet)
 	return int(fd), nil
 }
+
+func IsBpfFS(path string) bool {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return false
+	}
+
+	absPathC := C.CString(absPath)
+	defer C.free(unsafe.Pointer(absPathC))
+	var quiet C.bool
+	valid := C.is_bpffs(absPathC, quiet)
+	return bool(valid)
+}

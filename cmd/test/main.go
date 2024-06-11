@@ -9,6 +9,8 @@ import (
 )
 
 func main() {
+	bpffs := libbpf.IsBpfFS("/sys/fs/bpf")
+	fmt.Println("bpffs:", bpffs)
 	numPossibleCPUs, _ := libbpf.NumPossibleCPUs()
 	fmt.Println("numPossibleCPUs:", numPossibleCPUs)
 
