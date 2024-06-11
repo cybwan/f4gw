@@ -9,6 +9,7 @@ BASE_DIR = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 INC_DIR = $(abspath ${BASE_DIR})/bpf/include
 SRC_DIR = $(abspath ${BASE_DIR})/bpf/src
 BIN_DIR = $(abspath ${BASE_DIR})/bin
+BPF_DIR = $(abspath ${BASE_DIR})/bpf
 
 XDP_GATEWAY_OUT = gateway.kern.o
 XDP_GATEWAY_SRC = $(patsubst %.o,%.c,${XDP_GATEWAY_OUT})
@@ -87,17 +88,17 @@ $(OUTPUT)/libbpf:
 bpf-fmt:
 	find . -regex '.*\.\(c\|h\)' -exec clang-format -style=file -i {} \;
 
-bpf-build: ${BIN_DIR}/${XDP_GATEWAY_OUT} ${BIN_DIR}/${XDP_PROXY_OUT}
+bpf-build: ${BPF_DIR}/${XDP_GATEWAY_OUT} ${BPF_DIR}/${XDP_PROXY_OUT}
 
-${BIN_DIR}/${XDP_GATEWAY_OUT}: ${SRC_DIR}/${XDP_GATEWAY_SRC}
+${BPF_DIR}/${XDP_GATEWAY_OUT}: ${SRC_DIR}/${XDP_GATEWAY_SRC}
 	clang -I${INC_DIR} ${BPF_CFLAGS} -emit-llvm -c -g $< -o - | llc -march=bpf -filetype=obj -o $@
 
-${BIN_DIR}/${XDP_PROXY_OUT}: ${SRC_DIR}/${XDP_PROXY_SRC}
+${BPF_DIR}/${XDP_PROXY_OUT}: ${SRC_DIR}/${XDP_PROXY_SRC}
 	clang -I${INC_DIR} ${BPF_CFLAGS} -emit-llvm -c -g $< -o - | llc -march=bpf -filetype=obj -o $@
 
 bpf-clean:
-	rm -f ${BIN_DIR}/${XDP_GATEWAY_OUT}
-	rm -f ${BIN_DIR}/${XDP_PROXY_OUT}
+	rm -f ${BPF_DIR}/${XDP_GATEWAY_OUT}
+	rm -f ${BPF_DIR}/${XDP_PROXY_OUT}
 
 .PHONY: go-fmt
 go-fmt:
