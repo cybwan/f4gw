@@ -8,6 +8,7 @@ import "C"
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"syscall"
@@ -132,14 +133,14 @@ const (
 )
 
 func LoadAll(bpffs, progName, progFile string) error {
-	pinDir := fmt.Sprintf("%s/%s", bpffs, progName)
+	pindir := fmt.Sprintf("%s/%s", bpffs, progName)
 	args := []string{
 		`prog`,
 		`loadall`,
 		progFile,
-		pinDir,
+		pindir,
 		`pinmaps`,
-		pinDir,
+		pindir,
 	}
 	cmd := exec.Command(bpftool, args...)
 	_, err := cmd.Output()
@@ -147,12 +148,6 @@ func LoadAll(bpffs, progName, progFile string) error {
 }
 
 func UnloadAll(bpffs, progName string) error {
-	pinDir := fmt.Sprintf("%s/%s", bpffs, progName)
-	args := []string{
-		`-rf`,
-		pinDir,
-	}
-	cmd := exec.Command(`/usr/bin/rm`, args...)
-	_, err := cmd.Output()
-	return err
+	pindir := fmt.Sprintf("%s/%s", bpffs, progName)
+	return os.RemoveAll(pindir)
 }
