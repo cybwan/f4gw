@@ -104,25 +104,28 @@ bpf-clean:
 go-fmt:
 	go fmt ./...
 
-.PHONY: go-generate
-go-generate: export BPF_CFLAGS := $(BPF_CFLAGS)
-go-generate: export BPF_INC_DIR := $(INC_DIR)
-go-generate: export BPF_SRC_DIR := $(SRC_DIR)
-go-generate:
-	go generate ./...
-
 .PHONY: go-build-f4gw
-go-build-f4gw:
-	go build -v -o ${BIN_DIR}/${F4GW_OUT} ./cmd/${F4GW_OUT}
+go-build-f4gw: $(LIBBPF_OBJ)
+	CC=$(CLANG) \
+	CGO_CFLAGS=$(CGO_CFLAGS_STATIC) \
+	CGO_LDFLAGS=$(CGO_LDFLAGS_STATIC) \
+	GOOS=linux GOARCH=$(ARCH) \
+	$(GO) build \
+	-ldflags $(CGO_EXTLDFLAGS_STATIC) \
+	-o ${BIN_DIR}/${F4GW_OUT} ./cmd/${F4GW_OUT}
 
 .PHONY: go-build-f4proxy
 go-build-f4proxy:
-	go build -v -o ${BIN_DIR}/${F4PROXY_OUT} ./cmd/${F4PROXY_OUT}
+	CC=$(CLANG) \
+	CGO_CFLAGS=$(CGO_CFLAGS_STATIC) \
+	CGO_LDFLAGS=$(CGO_LDFLAGS_STATIC) \
+	GOOS=linux GOARCH=$(ARCH) \
+	$(GO) build \
+	-ldflags $(CGO_EXTLDFLAGS_STATIC) \
+	-o ${BIN_DIR}/${F4PROXY_OUT} ./cmd/${F4PROXY_OUT}
 
 .PHONY: go
-go: go-generate
-	go build -v -o ${BIN_DIR}/${F4GW_OUT} ./cmd/${F4GW_OUT}
-	go build -v -o ${BIN_DIR}/${F4PROXY_OUT} ./cmd/${F4PROXY_OUT}
+go: go-build-f4gw go-build-f4proxy
 
 .PHONY: go-clean
 go-clean:
@@ -160,6 +163,8 @@ dist:
 		$(DIST_DIRS) cp ../bin/gw.json {} \; && \
 		$(DIST_DIRS) cp ../bin/proxy.json {} \; && \
 		$(DIST_DIRS) cp ../bin/proxy.js {} \; && \
+		$(DIST_DIRS) cp ../bpf/gateway.kern {} \; && \
+		$(DIST_DIRS) cp ../bpf/proxy.kern {} \; && \
 		$(DIST_DIRS) tar -zcf f4gw-${VERSION}-{}.tar.gz {} \; && \
 		$(DIST_DIRS) zip -r f4gw-${VERSION}-{}.zip {} \; && \
 		$(SHA256) f4gw-* > sha256sums.txt \

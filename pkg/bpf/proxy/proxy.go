@@ -12,8 +12,6 @@ import (
 	"github.com/cybwan/f4gw/pkg/bpf"
 )
 
-//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cflags $BPF_CFLAGS bpf $BPF_SRC_DIR/proxy.kern.c -- -I $BPF_INC_DIR
-
 func (proxy *F4Proxy) Init() {
 	if err := rlimit.RemoveMemlock(); err != nil {
 		log.Fatal().Msgf("remove memlock error: %v", err)

@@ -15,8 +15,6 @@ import (
 	"github.com/cybwan/f4gw/pkg/netaddr"
 )
 
-//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cflags $BPF_CFLAGS bpf $BPF_SRC_DIR/gateway.kern.c -- -I $BPF_INC_DIR
-
 func (gw *F4Gw) Init() {
 	if err := rlimit.RemoveMemlock(); err != nil {
 		log.Fatal().Msgf("remove memlock error: %v", err)
