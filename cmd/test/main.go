@@ -21,6 +21,12 @@ func main() {
 		return
 	}
 
+	err = libbpf.AttachXDP(`lo`, `/sys/fs/bpf/gateway/xdp_ingress`)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
 	//err = libbpf.UnloadAll(`/sys/fs/bpf`, `gateway`)
 	//if err != nil {
 	//	fmt.Println(err.Error())

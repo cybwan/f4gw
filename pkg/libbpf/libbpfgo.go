@@ -129,7 +129,8 @@ func MountBpfFS(path string) (bool, error) {
 }
 
 const (
-	bpftool = `/usr/sbin/bpftool`
+	bpftool_cmd = `/usr/sbin/bpftool_cmd`
+	ip_cmd      = `/usr/sbin/ip`
 )
 
 func LoadAll(bpffs, progName, progFile string) error {
@@ -142,7 +143,7 @@ func LoadAll(bpffs, progName, progFile string) error {
 		`pinmaps`,
 		pindir,
 	}
-	cmd := exec.Command(bpftool, args...)
+	cmd := exec.Command(bpftool_cmd, args...)
 	_, err := cmd.Output()
 	return err
 }
@@ -150,4 +151,33 @@ func LoadAll(bpffs, progName, progFile string) error {
 func UnloadAll(bpffs, progName string) error {
 	pindir := fmt.Sprintf("%s/%s", bpffs, progName)
 	return os.RemoveAll(pindir)
+}
+
+func AttachXDP(dev, pinnedProg string) error {
+	args := []string{
+		`link`,
+		`set`,
+		`dev`,
+		dev,
+		`xdpgeneric`,
+		`pinned`,
+		pinnedProg,
+	}
+	cmd := exec.Command(ip_cmd, args...)
+	_, err := cmd.Output()
+	return err
+}
+
+func DetachXDP(dev string) error {
+	args := []string{
+		`link`,
+		`set`,
+		`dev`,
+		dev,
+		`xdpgeneric`,
+		`off`,
+	}
+	cmd := exec.Command(ip_cmd, args...)
+	_, err := cmd.Output()
+	return err
 }
