@@ -2,7 +2,7 @@
   "workDuration": "900s",
   "ingress": [
     {
-      "linkName": "ens36"
+      "linkName": "ens33"
     }
   ],
   "egress": [
