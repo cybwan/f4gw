@@ -185,67 +185,76 @@ func (gw *F4Gw) ApplyNatLB(
 	if len(backends) == 0 {
 		return nil
 	}
-	//
-	//dstAddrNb, err := netaddr.IPv4ToInt(net.ParseIP(dstAddr))
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//natKey := DpNatKey{}
-	//natKey.Daddr[0] = dstAddrNb
-	//natKey.Dport = dstPort
-	//natKey.L4proto = uint8(dstProto)
-	//natKey.V6 = 0
-	//
-	//natActs := DpNatTacts{}
-	//natActs.Ca.ActType = uint8(DP_SET_SNAT)
-	//natActs.SelType = uint16(NAT_LB_SEL_RR)
-	//
-	//natActs.Nxfrm = uint16(len(backends))
-	//for index, backend := range backends {
-	//	viaHWAddr, viaIfi, err := gw.linkQuery(backend.ViaLinkName)
-	//	if err != nil {
-	//		return err
-	//	}
-	//
-	//	viaIpNb, err := netaddr.IPv4ToInt(net.ParseIP(backend.ViaLinkAddr))
-	//	if err != nil {
-	//		return err
-	//	}
-	//
-	//	gw.bpfObjs.F4gwEgrIpv4.Delete(viaIpNb)
-	//
-	//	natActs.Nxfrms[index].NatXifi = uint16(viaIfi)
-	//	natActs.Nxfrms[index].NatXip[0] = viaIpNb
-	//	for n := 0; n < 6; n++ {
-	//		natActs.Nxfrms[index].NatXmac[n] = viaHWAddr[n]
-	//	}
-	//
-	//	backendHWAddr, backendHWAddrErr := gw.arpQuery(backend.ViaLinkName, backend.IPv4)
-	//	if backendHWAddrErr != nil {
-	//		return backendHWAddrErr
-	//	}
-	//
-	//	natActs.Nxfrms[index].NatRip[0], err = netaddr.IPv4ToInt(net.ParseIP(backend.IPv4))
-	//	if err != nil {
-	//		return err
-	//	}
-	//	natActs.Nxfrms[index].NatRport = netaddr.HostToNetShort(backend.Port)
-	//	for n := 0; n < 6; n++ {
-	//		natActs.Nxfrms[index].NatRmac[n] = backendHWAddr[n]
-	//	}
-	//
-	//	if gw.attachedXdpLinks == nil {
-	//		gw.attachedXdpLinks = make(map[string]uint8)
-	//	}
-	//	if _, attached := gw.attachedXdpLinks[backend.ViaLinkName]; !attached {
-	//		gw.AttachEgressBPF(backend.ViaLinkName)
-	//		gw.attachedXdpLinks[backend.ViaLinkName] = 1
-	//	}
-	//}
-	//return gw.bpfObjs.F4gwNat.Update(&natKey, &natActs, ebpf.UpdateAny)
 
-	return nil
+	dstAddrNb, err := netaddr.IPv4ToInt(net.ParseIP(dstAddr))
+	if err != nil {
+		return err
+	}
+
+	natKey := DpNatKey{}
+	natKey.Daddr[0] = dstAddrNb
+	natKey.Dport = dstPort
+	natKey.L4proto = uint8(dstProto)
+	natKey.V6 = 0
+
+	natActs := DpNatTacts{}
+	natActs.Ca.ActType = uint8(DP_SET_SNAT)
+	natActs.SelType = uint16(NAT_LB_SEL_RR)
+
+	natActs.Nxfrm = uint16(len(backends))
+
+	egr_ipv4_map, err := libbpf.GetMapByPinnedPath(fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "f4gw_egr_ipv4"))
+	if err != nil {
+		log.Fatal().Err(err).Msg(`loading f4gw_egr_ipv4`)
+	}
+
+	nat_map, err := libbpf.GetMapByPinnedPath(fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "f4gw_nat"))
+	if err != nil {
+		log.Fatal().Err(err).Msg(`loading f4gw_nat`)
+	}
+
+	for index, backend := range backends {
+		viaHWAddr, viaIfi, err := gw.linkQuery(backend.ViaLinkName)
+		if err != nil {
+			return err
+		}
+
+		viaIpNb, err := netaddr.IPv4ToInt(net.ParseIP(backend.ViaLinkAddr))
+		if err != nil {
+			return err
+		}
+
+		egr_ipv4_map.Delete(unsafe.Pointer(&viaIpNb))
+
+		natActs.Nxfrms[index].NatXifi = uint16(viaIfi)
+		natActs.Nxfrms[index].NatXip[0] = viaIpNb
+		for n := 0; n < 6; n++ {
+			natActs.Nxfrms[index].NatXmac[n] = viaHWAddr[n]
+		}
+
+		backendHWAddr, backendHWAddrErr := gw.arpQuery(backend.ViaLinkName, backend.IPv4)
+		if backendHWAddrErr != nil {
+			return backendHWAddrErr
+		}
+
+		natActs.Nxfrms[index].NatRip[0], err = netaddr.IPv4ToInt(net.ParseIP(backend.IPv4))
+		if err != nil {
+			return err
+		}
+		natActs.Nxfrms[index].NatRport = netaddr.HostToNetShort(backend.Port)
+		for n := 0; n < 6; n++ {
+			natActs.Nxfrms[index].NatRmac[n] = backendHWAddr[n]
+		}
+
+		if gw.attachedXdpLinks == nil {
+			gw.attachedXdpLinks = make(map[string]uint8)
+		}
+		if _, attached := gw.attachedXdpLinks[backend.ViaLinkName]; !attached {
+			gw.AttachEgressBPF(backend.ViaLinkName)
+			gw.attachedXdpLinks[backend.ViaLinkName] = 1
+		}
+	}
+	return nat_map.Update(unsafe.Pointer(&natKey), unsafe.Pointer(&natActs))
 }
 
 func (gw *F4Gw) linkQuery(ifaceName string) (net.HardwareAddr, int, error) {

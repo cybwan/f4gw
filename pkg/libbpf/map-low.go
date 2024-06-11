@@ -212,7 +212,7 @@ func (m *BPFMap) UpdateValueFlags(key, value unsafe.Pointer, flags MapFlag) erro
 	return nil
 }
 
-func (m *BPFMap) DeleteKey(key unsafe.Pointer) error {
+func (m *BPFMap) Delete(key unsafe.Pointer) error {
 	retC := C.bpf_map_delete_elem(C.int(m.FileDescriptor()), key)
 	if retC < 0 {
 		return fmt.Errorf("failed to delete key %d in map %s: %w", key, m.Name(), syscall.Errno(-retC))
