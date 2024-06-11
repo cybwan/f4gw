@@ -141,39 +141,42 @@ func (gw *F4Gw) AttachIngressBPF(iface string) {
 }
 
 func (gw *F4Gw) AttachEgressBPF(iface string) {
-	//// Look up the network interface by name.
-	//egressIface, egressErr := net.InterfaceByName(iface)
-	//if egressErr != nil {
-	//	log.Fatal().Msgf("lookup network egress iface %s: %s", iface, egressErr)
-	//	return
-	//}
-	//// Attach the program.
-	//egressLink, egressErr := link.AttachXDP(link.XDPOptions{
-	//	Program:   gw.bpfObjs.XdpEgress,
-	//	Interface: egressIface.Index,
-	//})
-	//if egressErr != nil {
-	//	log.Fatal().Msgf("could not attach XDP program: %s", egressErr)
-	//	return
-	//}
-	//
-	//if addrs, addrErr := egressIface.Addrs(); addrErr == nil {
-	//	for _, addr := range addrs {
-	//		if ipv4Addr := addr.(*net.IPNet).IP.To4(); ipv4Addr != nil {
-	//			if ipNb, convErr := netaddr.IPv4ToInt(ipv4Addr); convErr == nil {
-	//				if err := gw.bpfObjs.F4gwEgrIpv4.Update(ipNb,
-	//					uint8(1), ebpf.UpdateAny); err != nil {
-	//					log.Fatal().Err(err)
-	//					return
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
-	//
-	//gw.cleanCallbacks[fmt.Sprintf("Detached XDP program to egress iface %q (index %d)", egressIface.Name, egressIface.Index)] = egressLink.Close
-	//
-	//log.Info().Msgf("Attached XDP program to  egress iface %q (index %d)", egressIface.Name, egressIface.Index)
+	// Look up the network interface by name.
+	egressIface, egressErr := net.InterfaceByName(iface)
+	if egressErr != nil {
+		log.Fatal().Msgf("lookup network egress iface %s: %s", iface, egressErr)
+		return
+	}
+
+	egressErr = libbpf.AttachXDP(iface, fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "xdp_egress"))
+	if egressErr != nil {
+		log.Fatal().Msgf("could not attach XDP program: %s", egressErr)
+		return
+	}
+
+	if addrs, addrErr := egressIface.Addrs(); addrErr == nil {
+		egr_ipv4_map, err := libbpf.GetMapByPinnedPath(fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "f4gw_egr_ipv4"))
+		if err != nil {
+			log.Fatal().Err(err).Msg(`loading f4gw_egr_ipv4`)
+		}
+		v := uint8(1)
+		for _, addr := range addrs {
+			if ipv4Addr := addr.(*net.IPNet).IP.To4(); ipv4Addr != nil {
+				if ipNb, convErr := netaddr.IPv4ToInt(ipv4Addr); convErr == nil {
+					if err := egr_ipv4_map.Update(unsafe.Pointer(&ipNb), unsafe.Pointer(&v)); err != nil {
+						log.Fatal().Err(err).Msg(`updating f4gw_igr_ipv4`)
+					}
+				}
+			}
+		}
+	}
+
+	gw.cleanCallbacks[fmt.Sprintf("Detached XDP program to egress iface %q (index %d)", egressIface.Name, egressIface.Index)] = func() error {
+		libbpf.DetachXDP(iface)
+		return nil
+	}
+
+	log.Info().Msgf("Attached XDP program to  egress iface %q (index %d)", egressIface.Name, egressIface.Index)
 }
 
 func (gw *F4Gw) ApplyNatLB(
