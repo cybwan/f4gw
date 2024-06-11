@@ -149,11 +149,6 @@ ifeq ($(shell uname),Darwin)
 	SHA256 = shasum -a 256
 endif
 
-.PHONY: build-cross
-build-cross:
-	GO111MODULE=on CGO_ENABLED=0 $(GOX) -parallel=5 -output="_dist/{{.OS}}-{{.Arch}}/$(F4GW_OUT)" -osarch='$(TARGETS)' ./cmd/${F4GW_OUT}
-	GO111MODULE=on CGO_ENABLED=0 $(GOX) -parallel=5 -output="_dist/{{.OS}}-{{.Arch}}/$(F4PROXY_OUT)" -osarch='$(TARGETS)' ./cmd/${F4PROXY_OUT}
-
 .PHONY: dist
 dist:
 	( \
@@ -163,15 +158,17 @@ dist:
 		$(DIST_DIRS) cp ../bin/gw.json {} \; && \
 		$(DIST_DIRS) cp ../bin/proxy.json {} \; && \
 		$(DIST_DIRS) cp ../bin/proxy.js {} \; && \
-		$(DIST_DIRS) cp ../bpf/gateway.kern {} \; && \
-		$(DIST_DIRS) cp ../bpf/proxy.kern {} \; && \
+		$(DIST_DIRS) cp ../bin/gateway.kern {} \; && \
+		$(DIST_DIRS) cp ../bin/proxy.kern {} \; && \
+		$(DIST_DIRS) cp ../bin/f4gw {} \; && \
+		$(DIST_DIRS) cp ../bin/f4proxy {} \; && \
 		$(DIST_DIRS) tar -zcf f4gw-${VERSION}-{}.tar.gz {} \; && \
 		$(DIST_DIRS) zip -r f4gw-${VERSION}-{}.zip {} \; && \
 		$(SHA256) f4gw-* > sha256sums.txt \
 	)
 
 .PHONY: release-artifacts
-release-artifacts: build-cross dist
+release-artifacts: dist
 
 .PHONY: release
 VERSION_REGEXP := ^v[0-9]+\.[0-9]+\.[0-9]+(\-(alpha|beta|rc)\.[0-9]+)?$
