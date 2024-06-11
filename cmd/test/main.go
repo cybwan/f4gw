@@ -3,6 +3,7 @@ package main
 import "C"
 import (
 	"fmt"
+	"time"
 
 	"github.com/cybwan/f4gw/pkg/libbpf"
 )
@@ -26,6 +27,8 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
+
+	time.Sleep(time.Second * 3600)
 
 	//err = libbpf.UnloadAll(`/sys/fs/bpf`, `gateway`)
 	//if err != nil {
