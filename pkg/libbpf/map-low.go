@@ -1,4 +1,4 @@
-package kylibbpfgo
+package libbpf
 
 /*
 #cgo LDFLAGS: -lelf -lz
