@@ -1,5 +1,10 @@
 SHELL = bash
 
+CC = gcc
+CLANG = clang
+GO = go
+ARCH := $(shell uname -m | sed 's/x86_64/amd64/g; s/aarch64/arm64/g')
+
 BASE_DIR = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 INC_DIR = $(abspath ${BASE_DIR})/bpf/include
 SRC_DIR = $(abspath ${BASE_DIR})/bpf/src
@@ -60,6 +65,15 @@ ifeq ($(wildcard $@), )
 	mv libbpf-0.8.3 ./bpf/libbpf
 	rm -rf v0.8.3.tar.gz
 endif
+
+test-build: $(LIBBPF_OBJ)
+	CC=$(CLANG) \
+		CGO_CFLAGS=$(CGO_CFLAGS_STATIC) \
+		CGO_LDFLAGS=$(CGO_LDFLAGS_STATIC) \
+		GOOS=linux GOARCH=$(ARCH) \
+		$(GO) build \
+		-tags netgo -ldflags $(CGO_EXTLDFLAGS_STATIC) \
+		-o ./bin/test ./cmd/test
 
 # output
 
