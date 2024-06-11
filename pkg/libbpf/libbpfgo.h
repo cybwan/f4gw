@@ -14,6 +14,7 @@
 #include <stdarg.h>
 #include <libgen.h>
 #include <sys/resource.h>
+#include <sys/mount.h>
 #include <sys/statfs.h>
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -22,11 +23,15 @@
 #include <bpf/libbpf.h>
 #include <linux/bpf.h> // uapi
 
+#define ERR_MAX_LEN	1024
+
 struct bpf_map_info *cgo_bpf_map_info_new();
 __u32 cgo_bpf_map_info_size();
 void cgo_bpf_map_info_free(struct bpf_map_info *info);
 
 bool cgo_is_bpffs(char *path);
+int cgo_mount_bpffs(const char *name);
+
 int cgo_open_obj_pinned(const char *path, bool quiet);
 
 // bpf_map_info

@@ -29,6 +29,70 @@ static bool is_bpffs(char *path)
 	return (unsigned long)st_fs.f_type == BPF_FS_MAGIC;
 }
 
+static int
+mnt_fs(const char *target, const char *type, char *buff, size_t bufflen)
+{
+	bool bind_done = false;
+
+	while (mount("", target, "none", MS_PRIVATE | MS_REC, NULL)) {
+		if (errno != EINVAL || bind_done) {
+			snprintf(buff, bufflen,
+				 "mount --make-private %s failed: %s",
+				 target, strerror(errno));
+			return -1;
+		}
+
+		if (mount(target, target, "none", MS_BIND, NULL)) {
+			snprintf(buff, bufflen,
+				 "mount --bind %s %s failed: %s",
+				 target, target, strerror(errno));
+			return -1;
+		}
+
+		bind_done = true;
+	}
+
+	if (mount(type, target, type, 0, "mode=0700")) {
+		snprintf(buff, bufflen, "mount -t %s %s %s failed: %s",
+			 type, type, target, strerror(errno));
+		return -1;
+	}
+
+	return 0;
+}
+
+int cgo_mount_bpffs(const char *name)
+{
+	char err_str[ERR_MAX_LEN];
+	char *file;
+	char *dir;
+	int err = 0;
+
+	file = malloc(strlen(name) + 1);
+	if (!file) {
+		p_err("mem alloc failed");
+		return -1;
+	}
+
+	strcpy(file, name);
+	dir = dirname(file);
+
+	if (is_bpffs(dir))
+		/* nothing to do if already mounted */
+		goto out_free;
+
+	err = mnt_fs(dir, "bpf", err_str, ERR_MAX_LEN);
+	if (err) {
+		err_str[ERR_MAX_LEN - 1] = '\0';
+		p_err("can't mount BPF file system to pin the object (%s): %s",
+		      name, err_str);
+	}
+
+out_free:
+	free(file);
+	return err;
+}
+
 struct bpf_map_info *cgo_bpf_map_info_new()
 {
     struct bpf_map_info *info;
