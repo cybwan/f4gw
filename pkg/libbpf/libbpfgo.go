@@ -129,7 +129,7 @@ func MountBpfFS(path string) (bool, error) {
 }
 
 const (
-	bpftool_cmd = `/usr/sbin/bpftool_cmd`
+	bpftool_cmd = `/usr/sbin/bpftool`
 	ip_cmd      = `/usr/sbin/ip`
 )
 
