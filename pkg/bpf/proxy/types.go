@@ -7,8 +7,6 @@ var (
 )
 
 type F4Proxy struct {
-	bpfObjs *bpfObjects
-
 	cleanCallbacks map[string]func() error
 }
 

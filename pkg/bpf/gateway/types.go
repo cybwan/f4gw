@@ -35,8 +35,6 @@ var (
 )
 
 type F4Gw struct {
-	bpfObjs *bpfObjects
-
 	cleanCallbacks map[string]func() error
 
 	attachedXdpLinks map[string]uint8
