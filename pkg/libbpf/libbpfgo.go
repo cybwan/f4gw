@@ -113,3 +113,15 @@ func IsBpfFS(path string) bool {
 	valid := C.cgo_is_bpffs(absPathC)
 	return bool(valid)
 }
+
+func MountBpfFS(path string) (int, error) {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return -1, err
+	}
+
+	absPathC := C.CString(absPath)
+	defer C.free(unsafe.Pointer(absPathC))
+	ret := C.cgo_mount_bpffs(absPathC)
+	return int(ret), nil
+}
