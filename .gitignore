@@ -2,6 +2,4 @@
 /.idea/
 /~$topo.pptx
 /_dist
-bin/f4gw
-bin/f4proxy
 bin/*.o
