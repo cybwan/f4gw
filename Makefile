@@ -33,72 +33,24 @@ BPF_CFLAGS = \
 	-Wno-pointer-sign     \
 	-Wno-compare-distinct-pointer-types
 
-OUTPUT = ./bpf/lib
-
-LIBBPF_SRC = $(abspath ./bpf/libbpf/src)
-LIBBPF_OBJ = $(abspath ./$(OUTPUT)/libbpf.a)
-LIBBPF_OBJDIR = $(abspath ./$(OUTPUT)/libbpf)
-LIBBPF_DESTDIR = $(abspath ./$(OUTPUT))
-
-CGO_CFLAGS_STATIC = "-I$(abspath $(OUTPUT))"
-CGO_LDFLAGS_STATIC = "-lelf -lz $(LIBBPF_OBJ)"
-CGO_EXTLDFLAGS_STATIC = '-w -extldflags "-static"'
-
-CGO_CFGLAGS_DYN = "-I. -I/usr/include/"
+CGO_CFLAGS_DYN = "-I. -I./bpf/include -I/usr/include/"
 CGO_LDFLAGS_DYN = "-lelf -lz -lbpf"
-
-.PHONY: libbpf-static
-libbpf-static: $(LIBBPF_OBJ)
-
-$(LIBBPF_OBJ): $(LIBBPF_SRC) $(wildcard $(LIBBPF_SRC)/*.[ch]) | $(OUTPUT)/libbpf
-	CC="$(CC)" CFLAGS="$(CFLAGS)" LD_FLAGS="$(LDFLAGS)" \
-	   $(MAKE) -C $(LIBBPF_SRC) \
-		BUILD_STATIC_ONLY=1 \
-		OBJDIR=$(LIBBPF_OBJDIR) \
-		DESTDIR=$(LIBBPF_DESTDIR) \
-		INCLUDEDIR= LIBDIR= UAPIDIR= install
-
-$(LIBBPF_SRC):
-ifeq ($(wildcard $@), )
-	echo "INFO: updating submodule 'libbpf'"
-	wget https://github.com/libbpf/libbpf/archive/refs/tags/v0.8.3.tar.gz
-	tar zxf v0.8.3.tar.gz
-	mv libbpf-0.8.3 ./bpf/libbpf
-	rm -rf v0.8.3.tar.gz
-endif
-
-test-build: $(LIBBPF_OBJ)
-	CC=$(CLANG) \
-		CGO_CFLAGS=$(CGO_CFLAGS_STATIC) \
-		CGO_LDFLAGS=$(CGO_LDFLAGS_STATIC) \
-		GOOS=linux GOARCH=$(ARCH) \
-		$(GO) build \
-		-ldflags $(CGO_EXTLDFLAGS_STATIC) \
-		-o ./bin/test ./cmd/test
-
-# output
-
-$(OUTPUT):
-	mkdir -p $(OUTPUT)
-
-$(OUTPUT)/libbpf:
-	mkdir -p $(OUTPUT)/libbpf
 
 .PHONY: bpf-fmt
 bpf-fmt:
 	find . -regex '.*\.\(c\|h\)' -exec clang-format -style=file -i {} \;
 
-bpf-build: ${BPF_DIR}/${XDP_GATEWAY_OUT} ${BPF_DIR}/${XDP_PROXY_OUT}
+bpf-build: ${BIN_DIR}/${XDP_GATEWAY_OUT} ${BIN_DIR}/${XDP_PROXY_OUT}
 
-${BPF_DIR}/${XDP_GATEWAY_OUT}: ${SRC_DIR}/${XDP_GATEWAY_SRC}
+${BIN_DIR}/${XDP_GATEWAY_OUT}: ${SRC_DIR}/${XDP_GATEWAY_SRC}
 	clang -I${INC_DIR} ${BPF_CFLAGS} -emit-llvm -c -g $< -o - | llc -march=bpf -filetype=obj -o $@
 
-${BPF_DIR}/${XDP_PROXY_OUT}: ${SRC_DIR}/${XDP_PROXY_SRC}
+${BIN_DIR}/${XDP_PROXY_OUT}: ${SRC_DIR}/${XDP_PROXY_SRC}
 	clang -I${INC_DIR} ${BPF_CFLAGS} -emit-llvm -c -g $< -o - | llc -march=bpf -filetype=obj -o $@
 
 bpf-clean:
-	rm -f ${BPF_DIR}/${XDP_GATEWAY_OUT}
-	rm -f ${BPF_DIR}/${XDP_PROXY_OUT}
+	rm -f ${BIN_DIR}/${XDP_GATEWAY_OUT}
+	rm -f ${BIN_DIR}/${XDP_PROXY_OUT}
 
 .PHONY: go-fmt
 go-fmt:
@@ -107,21 +59,19 @@ go-fmt:
 .PHONY: go-build-f4gw
 go-build-f4gw: $(LIBBPF_OBJ)
 	CC=$(CLANG) \
-	CGO_CFLAGS=$(CGO_CFLAGS_STATIC) \
-	CGO_LDFLAGS=$(CGO_LDFLAGS_STATIC) \
+	CGO_CFLAGS=$(CGO_CFLAGS_DYN) \
+	CGO_LDFLAGS=$(CGO_LDFLAGS_DYN) \
 	GOOS=linux GOARCH=$(ARCH) \
 	$(GO) build \
-	-ldflags $(CGO_EXTLDFLAGS_STATIC) \
 	-o ${BIN_DIR}/${F4GW_OUT} ./cmd/${F4GW_OUT}
 
 .PHONY: go-build-f4proxy
 go-build-f4proxy:
 	CC=$(CLANG) \
-	CGO_CFLAGS=$(CGO_CFLAGS_STATIC) \
-	CGO_LDFLAGS=$(CGO_LDFLAGS_STATIC) \
+	CGO_CFLAGS=$(CGO_CFLAGS_DYN) \
+	CGO_LDFLAGS=$(CGO_LDFLAGS_DYN) \
 	GOOS=linux GOARCH=$(ARCH) \
 	$(GO) build \
-	-ldflags $(CGO_EXTLDFLAGS_STATIC) \
 	-o ${BIN_DIR}/${F4PROXY_OUT} ./cmd/${F4PROXY_OUT}
 
 .PHONY: go
@@ -158,8 +108,8 @@ dist:
 		$(DIST_DIRS) cp ../bin/gw.json {} \; && \
 		$(DIST_DIRS) cp ../bin/proxy.json {} \; && \
 		$(DIST_DIRS) cp ../bin/proxy.js {} \; && \
-		$(DIST_DIRS) cp ../bin/gateway.kern {} \; && \
-		$(DIST_DIRS) cp ../bin/proxy.kern {} \; && \
+		$(DIST_DIRS) cp ../bin/gateway.kern.o {} \; && \
+		$(DIST_DIRS) cp ../bin/proxy.kern.o {} \; && \
 		$(DIST_DIRS) cp ../bin/f4gw {} \; && \
 		$(DIST_DIRS) cp ../bin/f4proxy {} \; && \
 		$(DIST_DIRS) tar -zcf f4gw-${VERSION}-{}.tar.gz {} \; && \
