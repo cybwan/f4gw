@@ -4,4 +4,3 @@
 /_dist
 /bpf/lib
 /bpf/libbpf
-bin/*.o
