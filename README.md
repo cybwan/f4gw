@@ -2,7 +2,29 @@
 
 # Prerequisites
 
-> **kernel >= v5.10**
+> **kylinx v10 sp3**
+
+```bash
+yum install bpftool -y
+yum install libbpf libbpf-devel -y
+```
+
+# Compile Prerequisites
+
+```bash
+yum install make -y
+yum install clang -y
+yum install llvm -y
+
+cd /opt
+wget https://go.dev/dl/go1.22.4.linux-amd64.tar.gz
+tar zxf go1.22.4.linux-amd64.tar.gz
+export PATH=/opt/go/bin:$PATH
+go env -w GOPROXY=https://goproxy.cn
+go env -w GOROOT=/opt/go
+go env -w GOPATH=~/go
+mkdir ~/go
+```
 
 # TOPO
 
@@ -15,6 +37,8 @@
 ```bash
 curl http://httpbin.org -I
 
+curl 18.208.239.112 -I
+
 nslookup httpbin.org 8.8.8.8
 
 ping 8.8.8.8
@@ -23,15 +47,9 @@ ping 8.8.8.8
 ## F4GW
 
 ```bash
-yum install bpftool -y
-yum install libbpf libbpf-devel -y
-yum install golang -y
-go env -w GO111MODULE=on
-go env -w GOPROXY=https://goproxy.cn,direct
-
 system=linux
 arch=amd64
-release=v0.7.1-kylinx.1
+release=v0.8.1-kylinx.1
 curl -L https://github.com/cybwan/f4gw/releases/download/${release}/f4gw-${release}-${system}-${arch}.tar.gz | tar -vxzf -
 cd ./${system}-${arch}
 
@@ -44,7 +62,7 @@ cd ./${system}-${arch}
 ```bash
 system=$(uname -s | tr [:upper:] [:lower:])
 arch=$(dpkg --print-architecture)
-release=v0.4.1-alpha.1
+release=v0.8.1-kylinx.1
 curl -L https://github.com/cybwan/f4gw/releases/download/${release}/f4gw-${release}-${system}-${arch}.tar.gz | tar -vxzf -
 cd ./${system}-${arch}
 
@@ -80,14 +98,5 @@ nat netflow messages:
 
 ```bash
 bpftool map dump name f4gw_nat_opts
-ip link set dev ens34 xdpgeneric obj proxy.kern.o sec xdp/ingress
-
-ip link set dev ens34 xdpgeneric off
-
-ip link set dev ens33 xdpgeneric obj proxy.kern.o sec xdp/ingress
-
-ip link set dev ens33 xdpgeneric off
-
-git config --global user.email baili@flomesh.io
 ```
 
