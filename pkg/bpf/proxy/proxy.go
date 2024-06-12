@@ -14,7 +14,7 @@ func (proxy *F4Proxy) Init() {
 	}
 
 	proxy.prog = "proxy"
-	proxy.progFile = fmt.Sprintf("%s.kern", proxy.prog)
+	proxy.progFile = fmt.Sprintf("%s.kern.o", proxy.prog)
 
 	proxy.cleanCallbacks = make(map[string]func() error)
 

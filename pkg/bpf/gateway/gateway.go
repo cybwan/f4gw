@@ -19,7 +19,7 @@ func (gw *F4Gw) Init() {
 	}
 
 	gw.prog = "gateway"
-	gw.progFile = fmt.Sprintf("%s.kern", gw.prog)
+	gw.progFile = fmt.Sprintf("%s.kern.o", gw.prog)
 
 	gw.cleanCallbacks = make(map[string]func() error)
 
