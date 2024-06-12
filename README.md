@@ -60,8 +60,8 @@ cd ./${system}-${arch}
 ## F4Proxy
 
 ```bash
-system=$(uname -s | tr [:upper:] [:lower:])
-arch=$(dpkg --print-architecture)
+system=linux
+arch=amd64
 release=v0.8.1-kylinx.1
 curl -L https://github.com/cybwan/f4gw/releases/download/${release}/f4gw-${release}-${system}-${arch}.tar.gz | tar -vxzf -
 cd ./${system}-${arch}
