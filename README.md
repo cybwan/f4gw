@@ -24,6 +24,10 @@ ping 8.8.8.8
 
 ```bash
 yum install bpftool -y
+yum install libbpf libbpf-devel -y
+yum install golang -y
+go env -w GO111MODULE=on
+go env -w GOPROXY=https://goproxy.cn,direct
 
 system=linux
 arch=amd64
@@ -76,5 +80,14 @@ nat netflow messages:
 
 ```bash
 bpftool map dump name f4gw_nat_opts
+ip link set dev ens34 xdpgeneric obj proxy.kern.o sec xdp/ingress
+
+ip link set dev ens34 xdpgeneric off
+
+ip link set dev ens33 xdpgeneric obj proxy.kern.o sec xdp/ingress
+
+ip link set dev ens33 xdpgeneric off
+
+git config --global user.email baili@flomesh.io
 ```
 
