@@ -139,24 +139,6 @@ func (m *BPFMap) LookupAndDeleteElem(
 	return nil
 }
 
-func (m *BPFMap) LookupAndDeleteElemFlags(
-	key unsafe.Pointer,
-	value unsafe.Pointer,
-	flags MapFlag,
-) error {
-	retC := C.bpf_map_lookup_and_delete_elem_flags(
-		C.int(m.FileDescriptor()),
-		key,
-		value,
-		C.ulonglong(flags),
-	)
-	if retC < 0 {
-		return fmt.Errorf("failed to lookup and delete value %v in map %s: %w", key, m.Name(), syscall.Errno(-retC))
-	}
-
-	return nil
-}
-
 func (m *BPFMap) GetValueAndDeleteKey(key unsafe.Pointer) ([]byte, error) {
 	valueSize, err := CalcMapValueSize(m.ValueSize(), m.Type())
 	if err != nil {
@@ -167,25 +149,6 @@ func (m *BPFMap) GetValueAndDeleteKey(key unsafe.Pointer) ([]byte, error) {
 	err = m.LookupAndDeleteElem(
 		key,
 		unsafe.Pointer(&value[0]),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return value, nil
-}
-
-func (m *BPFMap) GetValueAndDeleteKeyFlags(key unsafe.Pointer, flags MapFlag) ([]byte, error) {
-	valueSize, err := CalcMapValueSize(m.ValueSize(), m.Type())
-	if err != nil {
-		return nil, fmt.Errorf("map %s %w", m.Name(), err)
-	}
-
-	value := make([]byte, valueSize)
-	err = m.LookupAndDeleteElemFlags(
-		key,
-		unsafe.Pointer(&value[0]),
-		flags,
 	)
 	if err != nil {
 		return nil, err
