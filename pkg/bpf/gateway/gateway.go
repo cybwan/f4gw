@@ -236,6 +236,7 @@ func (gw *F4Gw) ApplyNatLB(
 		if backendHWAddrErr != nil {
 			return backendHWAddrErr
 		}
+		fmt.Println(backend.IPv4, backendHWAddr.String())
 
 		natActs.Nxfrms[index].NatRip[0], err = netaddr.IPv4ToInt(net.ParseIP(backend.IPv4))
 		if err != nil {
