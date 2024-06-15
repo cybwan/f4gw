@@ -129,7 +129,7 @@ struct bpf_map_def SEC("maps") f4gw_xctk = {
   .type = BPF_MAP_TYPE_PERCPU_ARRAY,
   .key_size = sizeof(__u32),
   .value_size = sizeof(struct dp_ct_tact),
-  .max_entries = 1,
+  .max_entries = 2,
 };
 #else /* New BTF definitions */
 struct {
