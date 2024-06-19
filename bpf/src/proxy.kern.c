@@ -63,11 +63,11 @@ int xdp_ingress(struct xdp_md *ctx) {
 
     bpf_map_update_elem(&f4gw_nat_opts, &okey, &oact, BPF_ANY);
     
-    debug_printf("==================================\n");
-    debug_printf("f4m proto %d \t ipv6(?) %d\n", okey.l4proto, okey.v6);
-    debug_printf("f4m daddr %d dport %d\n", oact.daddr, oact.dport);
-    debug_printf("f4m saddr %d sport %d\n", oact.saddr, oact.sport);
-    debug_printf("f4m xaddr %d xport %d\n", okey.xaddr, okey.xport);
+    // debug_printf("==================================\n");
+    // debug_printf("f4m proto %d \t ipv6(?) %d\n", okey.l4proto, okey.v6);
+    // debug_printf("f4m daddr %d dport %d\n", oact.daddr, oact.dport);
+    // debug_printf("f4m saddr %d sport %d\n", oact.saddr, oact.sport);
+    // debug_printf("f4m xaddr %d xport %d\n", okey.xaddr, okey.xport);
   }
 
   return DP_PASS;
