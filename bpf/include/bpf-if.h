@@ -204,14 +204,6 @@ dp_ing_ct_main(void *ctx,  struct xfrm *xf)
     F4_DBG_FCH4("[FCH4] dp_ing_ct_main dst port=%d\n", ntohs(xf->l34m.dest));
   }
 
-  if (xf->pm.phit & F4_DP_RES_HIT) {
-    if((F4_DEBUG_EXT(xf)) || (F4_DEBUG_INT(xf))) {
-      F4_DBG_IF("[CTM] res_end\n");
-      F4_DBG_FCH4("[FCH4] dp_ing_ct_main res_end\n");
-    }
-    goto res_end;
-  }
-
   if (xf->pm.igr && (xf->pm.phit & F4_DP_CTM_HIT) == 0) {
     if((F4_DEBUG_EXT(xf)) || (F4_DEBUG_INT(xf))) {
       F4_DBG_FCH4("[FCH4] dp_ing_ct_main go dp_do_nat\n");
@@ -318,7 +310,6 @@ dp_ing_slow_main(void *ctx,  struct xfrm *xf)
   }
 
 out:
-  xf->pm.phit |= F4_DP_RES_HIT;
 
   if((F4_DEBUG_EXT(xf)) || (F4_DEBUG_INT(xf))) {
     F4_DBG_IF("[SLM] dp_ing_slow_main set xf->pm.phit F4_DP_RES_HIT\n");
