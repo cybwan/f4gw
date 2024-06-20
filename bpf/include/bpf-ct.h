@@ -196,6 +196,14 @@ dp_ct_tcp_sm(void *ctx, struct xfrm *xf,
   seq = ntohl(t->seq);
   ack = ntohl(t->ack_seq);
 
+  if (F4_DEBUG_PKT(xf)) {
+    debug_printf("---------------------------\n");
+    debug_printf("xf->pm.igr=%u xf->pm.egr=%u\n", xf->pm.igr, xf->pm.egr);
+    debug_printf("saddr %pI4 %u\n", &xf->l34m.saddr4, xf->l34m.saddr4);
+    debug_printf("daddr %pI4 %u\n", &xf->l34m.daddr4, xf->l34m.daddr4);
+    debug_printf("seq=%u ack=%u\n", seq, ack);
+  }
+
   dp_spin_lock(&atdat->lock);
 
   if (dir == CT_DIR_IN) {
@@ -1055,6 +1063,10 @@ dp_ct_in(void *ctx, struct xfrm *xf)
       bpf_map_delete_elem(&f4gw_ct, &xkey);
       bpf_map_delete_elem(&f4gw_ct, &key);
       // F4_DBG_PRINTK("[CTRK] bpf_map_delete_elem");
+
+      if (F4_DEBUG_PKT(xf)) {
+        debug_printf("bpf_map_delete_elem\n");
+      }
 
       if (atdat->ctd.dir == CT_DIR_IN) {
         dp_ct_del(xf, &key, &xkey, atdat, axtdat);
