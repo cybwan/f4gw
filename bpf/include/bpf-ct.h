@@ -941,7 +941,6 @@ dp_ct_in(void *ctx, struct xfrm *xf)
     } else if (smr == CT_SMR_ERR || smr == CT_SMR_CTD) {
       bpf_map_delete_elem(&f4gw_ct, &xkey);
       bpf_map_delete_elem(&f4gw_ct, &key);
-      // F4_DBG_PRINTK("[CTRK] bpf_map_delete_elem");
 
       if (atdat->ctd.dir == CT_DIR_IN) {
         dp_ct_del(xf, &key, &xkey, atdat, axtdat);

@@ -161,8 +161,6 @@ dp_ing_slow_main(void *ctx,  struct xfrm *xf)
     fa->fcta[z].ca.act_type = 0;
   }
 
-  // F4_DBG_PRINTK("[INGR] START--\n");
-
   // /* If there are any packets marked for mirroring, we do
   //  * it here and immediately get it out of way without
   //  * doing any further processing
