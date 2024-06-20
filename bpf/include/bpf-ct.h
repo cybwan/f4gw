@@ -833,85 +833,9 @@ dp_ct_in(void *ctx, struct xfrm *xf)
 
   dp_ct_proto_xfk_init(xf, &key, xi, &xkey, xxi);
 
-  if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-    F4_DBG_CTRK("[CTRK]\n");
-    F4_DBG_CTRK("[CTRK] dp_ct_in xf->l34m.source  %d\n", ntohs(xf->l34m.source));
-    F4_DBG_CTRK("[CTRK] dp_ct_in xf->l34m.dest    %d\n", ntohs(xf->l34m.dest));
-    if (xf->pm.igr) {
-      F4_DBG_CTRK("[CTRK] INT -> EXT\n");
-      F4_DBG_CTRK("[CTRK] dp_ct_in key saddr4 %pI4\n", &key.saddr4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in key daddr4 %pI4\n", &key.daddr4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in key sport  %d\n", ntohs(key.sport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in key dport  %d\n", ntohs(key.dport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_flags F4_NAT_DST %d F4_NAT_SRC %d\n", xi->nat_flags&F4_NAT_DST, xi->nat_flags&F4_NAT_SRC);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_xip %pI4\n", &xi->nat_xip4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_rip %pI4\n", &xi->nat_rip4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_xport %d\n", ntohs(xi->nat_xport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_rport %d\n", ntohs(xi->nat_rport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_xifi %d\n", xi->nat_xifi);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_xmac %02x:%02x:%02x\n", xi->nat_xmac[0],xi->nat_xmac[1],xi->nat_xmac[2]);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_xmac %02x:%02x:%02x\n", xi->nat_xmac[3],xi->nat_xmac[4],xi->nat_xmac[5]);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_rmac %02x:%02x:%02x\n", xi->nat_rmac[0],xi->nat_rmac[1],xi->nat_rmac[2]);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_rmac %02x:%02x:%02x\n", xi->nat_rmac[3],xi->nat_rmac[4],xi->nat_rmac[5]);
-
-      F4_DBG_CTRK("[CTRK] EXT -> INT\n");
-      F4_DBG_CTRK("[CTRK] dp_ct_in xkey saddr4 %pI4\n", &xkey.saddr4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xkey daddr4 %pI4\n", &xkey.daddr4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xkey sport  %d\n", ntohs(xkey.sport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in xkey dport  %d\n", ntohs(xkey.dport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_flags F4_NAT_DST %d F4_NAT_SRC %d\n", xxi->nat_flags&F4_NAT_DST, xxi->nat_flags&F4_NAT_SRC);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_xip %pI4\n", &xxi->nat_xip4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_rip %pI4\n", &xxi->nat_rip4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_xport %d\n", ntohs(xxi->nat_xport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_rport %d\n", ntohs(xxi->nat_rport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_xifi %d\n", xxi->nat_xifi);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_xmac %02x:%02x:%02x\n", xxi->nat_xmac[0],xxi->nat_xmac[1],xxi->nat_xmac[2]);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_xmac %02x:%02x:%02x\n", xxi->nat_xmac[3],xxi->nat_xmac[4],xxi->nat_xmac[5]);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_rmac %02x:%02x:%02x\n", xxi->nat_rmac[0],xxi->nat_rmac[1],xxi->nat_rmac[2]);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_rmac %02x:%02x:%02x\n", xxi->nat_rmac[3],xxi->nat_rmac[4],xxi->nat_rmac[5]);
-    } else {
-      F4_DBG_CTRK("[CTRK] INT -> EXT\n");
-      F4_DBG_CTRK("[CTRK] dp_ct_in key saddr4 %pI4\n", &xkey.saddr4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in key daddr4 %pI4\n", &xkey.daddr4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in key sport  %d\n", ntohs(xkey.sport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in key dport  %d\n", ntohs(xkey.dport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_flags F4_NAT_DST %d F4_NAT_SRC %d\n", xxi->nat_flags&F4_NAT_DST, xxi->nat_flags&F4_NAT_SRC);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_xip %pI4\n", &xxi->nat_xip4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_rip %pI4\n", &xxi->nat_rip4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_xport %d\n", ntohs(xxi->nat_xport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_rport %d\n", ntohs(xxi->nat_rport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_xifi %d\n", xxi->nat_xifi);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_xmac %02x:%02x:%02x\n", xxi->nat_xmac[0],xxi->nat_xmac[1],xxi->nat_xmac[2]);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_xmac %02x:%02x:%02x\n", xxi->nat_xmac[3],xxi->nat_xmac[4],xxi->nat_xmac[5]);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_rmac %02x:%02x:%02x\n", xxi->nat_rmac[0],xxi->nat_rmac[1],xxi->nat_rmac[2]);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xi nat_rmac %02x:%02x:%02x\n", xxi->nat_rmac[3],xxi->nat_rmac[4],xxi->nat_rmac[5]);
-      
-
-      F4_DBG_CTRK("[CTRK] EXT -> INT\n");
-      F4_DBG_CTRK("[CTRK] dp_ct_in xkey saddr4 %pI4\n", &key.saddr4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xkey daddr4 %pI4\n", &key.daddr4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xkey sport  %d\n", ntohs(key.sport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in xkey dport  %d\n", ntohs(key.dport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_flags F4_NAT_DST %d F4_NAT_SRC %d\n", xi->nat_flags&F4_NAT_DST, xi->nat_flags&F4_NAT_SRC);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_xip %pI4\n", &xi->nat_xip4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_rip %pI4\n", &xi->nat_rip4);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_xport %d\n", ntohs(xi->nat_xport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_rport %d\n", ntohs(xi->nat_rport));
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_xifi %d\n", xi->nat_xifi);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_xmac %02x:%02x:%02x\n", xi->nat_xmac[0],xi->nat_xmac[1],xi->nat_xmac[2]);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_xmac %02x:%02x:%02x\n", xi->nat_xmac[3],xi->nat_xmac[4],xi->nat_xmac[5]);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_rmac %02x:%02x:%02x\n", xi->nat_rmac[0],xi->nat_rmac[1],xi->nat_rmac[2]);
-      F4_DBG_CTRK("[CTRK] dp_ct_in xxi nat_rmac %02x:%02x:%02x\n", xi->nat_rmac[3],xi->nat_rmac[4],xi->nat_rmac[5]);
-    }
-  }
-
   atdat = bpf_map_lookup_elem(&f4gw_ct, &key);
   axtdat = bpf_map_lookup_elem(&f4gw_ct, &xkey);
   if (xf->pm.igr && (atdat == NULL || axtdat == NULL)) {
-    if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-      F4_DBG_CTRK("[CTRK]\n");
-      F4_DBG_CTRK("[CTRK] new-ct4");
-    }
     adat->ca.ftrap = 0;
     adat->ca.oaux = 0;
     adat->ca.cidx = dp_ct_get_newctr(&adat->ctd.nid);
@@ -987,55 +911,18 @@ dp_ct_in(void *ctx, struct xfrm *xf)
     axtdat = bpf_map_lookup_elem(&f4gw_ct, &xkey);
   }
 
-  if (!atdat) {
-    if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-        F4_DBG_CTRK("[CTRK] atdat is NULL");
-    }
-  }
-  if (!axtdat) {
-    if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-        F4_DBG_CTRK("[CTRK] axtdat is NULL");
-    }
-  }
-
   if (atdat != NULL && axtdat != NULL) {
     atdat->lts = bpf_ktime_get_ns();
     axtdat->lts = atdat->lts;
     xf->pm.pipe_act = F4_PIPE_RDR;
-    if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-      F4_DBG_CTRK("[CTRK]  atdat->ctd.dir %d\n", atdat->ctd.dir);
-      F4_DBG_CTRK("[CTRK] axtdat->ctd.dir %d\n", axtdat->ctd.dir);
-    }
     if (atdat->ctd.dir == CT_DIR_IN) {
       xf->pm.dir = CT_DIR_IN;
-      if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-        F4_DBG_CTRK("[CTRK]\n");
-        F4_DBG_CTRK("[CTRK] int-dir");
-        F4_DBG_CTRK("[CTRK]  key saddr=%pI4\n", &key.saddr4);
-        F4_DBG_CTRK("[CTRK]  key daddr=%pI4\n", &key.daddr4);
-        F4_DBG_CTRK("[CTRK]  key sport=%d\n", ntohs(key.sport));
-        F4_DBG_CTRK("[CTRK]  key dport=%d\n", ntohs(key.dport));
-        F4_DBG_CTRK("[CTRK]  key proto=%d\n", key.l4proto);
-      }
       xf->pm.phit |= F4_DP_CTSI_HIT;
       smr = dp_ct_sm(ctx, xf, atdat, axtdat, CT_DIR_IN);
     } else {
-      if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-        F4_DBG_CTRK("[CTRK]\n");
-        F4_DBG_CTRK("[CTRK] ext-dir");
-        F4_DBG_CTRK("[CTRK]  key saddr=%pI4\n", &key.saddr4);
-        F4_DBG_CTRK("[CTRK]  key daddr=%pI4\n", &key.daddr4);
-        F4_DBG_CTRK("[CTRK]  key sport=%d\n", ntohs(key.sport));
-        F4_DBG_CTRK("[CTRK]  key dport=%d\n", ntohs(key.dport));
-        F4_DBG_CTRK("[CTRK]  key proto=%d\n", key.l4proto);
-      }
       xf->pm.dir = CT_DIR_OUT;
       xf->pm.phit |= F4_DP_CTSO_HIT;
       smr = dp_ct_sm(ctx, xf, axtdat, atdat, CT_DIR_OUT);
-    }
-    
-    if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-      F4_DBG_CTRK("[CTRK] smr %d", smr);
     }
 
     if (smr == CT_SMR_EST) {

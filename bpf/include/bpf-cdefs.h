@@ -175,10 +175,6 @@ dp_set_tcp_src_ip(void *md, struct xfrm *xf, __be32 xip)
 
   xf->l34m.saddr4 = xip;
 
-  if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-    F4_DBG_PRINTK("[END] dp_set_tcp_src_ip %pI4\n", &xip);
-  }
-
   return 0;
 }
 
@@ -211,10 +207,6 @@ dp_set_tcp_dst_ip(void *md, struct xfrm *xf, __be32 xip)
   iph->check = dp_ipv4_checksum_diff(~old_csum, iph, &old);
 
   xf->l34m.daddr4 = xip;
-
-  if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-    F4_DBG_PRINTK("[END] dp_set_tcp_dst_ip %pI4\n", &xip);
-  }
 
   return 0;
 }
@@ -291,10 +283,6 @@ dp_set_udp_src_ip(void *md, struct xfrm *xf, __be32 xip)
 
   xf->l34m.saddr4 = xip;
 
-  if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-    F4_DBG_PRINTK("[END] dp_set_udp_src_ip %pI4\n", &xip);
-  }
-
   return 0;
 }
 
@@ -327,10 +315,6 @@ dp_set_udp_dst_ip(void *md, struct xfrm *xf, __be32 xip)
   iph->check = dp_ipv4_checksum_diff(~old_csum, iph, &old);
 
   xf->l34m.daddr4 = xip;
-
-  if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-    F4_DBG_PRINTK("[END] dp_set_udp_dst_ip %pI4\n", &xip);
-  }
 
   return 0;
 }
@@ -408,10 +392,6 @@ dp_set_icmp_src_ip(void *md, struct xfrm *xf, __be32 xip)
 
   xf->l34m.saddr4 = xip;
 
-  if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-    F4_DBG_PRINTK("[END] dp_set_icmp_src_ip %pI4\n", &xip);
-  }
-
   return 0;
 }
 
@@ -445,10 +425,6 @@ dp_set_icmp_dst_ip(void *md, struct xfrm *xf, __be32 xip)
   iph->check = dp_ipv4_checksum_diff(~old_csum, iph, &old);
 
   xf->l34m.daddr4 = xip;
-
-  if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-    F4_DBG_PRINTK("[END] dp_set_icmp_dst_ip %pI4\n", &xip);
-  }
 
   return 0;
 }

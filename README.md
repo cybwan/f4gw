@@ -18,6 +18,8 @@ curl http://httpbin.org -I
 nslookup httpbin.org 8.8.8.8
 
 ping 8.8.8.8
+
+clear;tcpdump -i ens33 -en host 3.213.1.197
 ```
 
 ## F4GW

@@ -153,8 +153,6 @@ dp_do_nat(void *ctx, struct xfrm *xf)
     return 0;
   }
 
-  xf->pm.phit |= F4_DP_NAT_HIT;
-
   if (act->ca.act_type == DP_SET_SNAT || 
       act->ca.act_type == DP_SET_DNAT) {
     sel = dp_sel_nat_ep(ctx, xf, act);

@@ -4,7 +4,6 @@
 #define F4_PIPE_FC_CAP(x)                     \
   ((x)->pm.pipe_act & F4_PIPE_RDR &&         \
   (x)->pm.phit & F4_DP_CTM_HIT &&            \
-  !((x)->pm.phit & F4_DP_SESS_HIT) &&        \
   (x)->l2m.dl_type == htons(ETH_P_IP) &&  \
   (x)->nm.xlate_proto == 0 &&                 \
   (x)->pm.dp_rec == 0 &&                      \
@@ -27,22 +26,10 @@ struct dp_pi_mdi {
 #define F4_PIPE_F4M          0x80
     __u8             pipe_act;
     __u8             l3_off;
-#define F4_DP_TMAC_HIT       0x1
-#define F4_DP_CTM_HIT        0x2
-#define F4_DP_IF_HIT         0x4
-#define F4_DP_RT_HIT         0x8
-#define F4_DP_FC_HIT         0x10
-#define F4_DP_SESS_HIT       0x20
-#define F4_DP_RES_HIT        0x40
-#define F4_DP_FW_HIT         0x80
-#define F4_DP_CTSI_HIT       0x100
-#define F4_DP_CTSO_HIT       0x200
-#define F4_DP_NAT_HIT        0x400
-#define F4_DP_CSUM_HIT       0x800
-#define F4_DP_UNPS_HIT       0x1000
-#define F4_DP_NEIGH_HIT      0x2000
-#define F4_DP_SMAC_HIT       0x4000
-#define F4_DP_DMAC_HIT       0x8000
+#define F4_DP_CTM_HIT        0x1
+#define F4_DP_FC_HIT         0x2
+#define F4_DP_CTSI_HIT       0x4
+#define F4_DP_CTSO_HIT       0x8
     __u16            phit;
 
     __u16            nh_num;
