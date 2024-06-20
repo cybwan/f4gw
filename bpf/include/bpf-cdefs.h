@@ -26,21 +26,21 @@
 #define DP_PASS     XDP_PASS
 
 #define F4_PPLN_PASSC(F, C)          \
-do {                                  \
+do {                                 \
   F->pm.pipe_act |= F4_PIPE_PASS;    \
-  F->pm.rcode |= C;                   \
+  F->pm.rcode |= C;                  \
 } while (0)
 
 #define F4_PPLN_DROPC(F, C)         \
-do {                                  \
-  F->pm.pipe_act |= F4_PIPE_DROP;    \
-  F->pm.rcode |= C;                   \
+do {                                \
+  F->pm.pipe_act |= F4_PIPE_DROP;   \
+  F->pm.rcode |= C;                 \
 } while (0)
 
 #define F4_PPLN_TRAPC(F,C)          \
-do {                                  \
-  F->pm.pipe_act |= F4_PIPE_TRAP;    \
-  F->pm.rcode = C;                    \
+do {                                \
+  F->pm.pipe_act |= F4_PIPE_TRAP;   \
+  F->pm.rcode = C;                  \
 } while (0)
 
 static __always_inline
