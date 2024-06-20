@@ -25,9 +25,6 @@ dp_eg_l2(void *ctx,  struct xfrm *xf, void *fa)
 static int __always_inline
 dp_ing_fwd(void *ctx,  struct xfrm *xf, void *fa)
 {
-  if((F4_DEBUG_EXT(xf)) || (F4_DEBUG_INT(xf))) {
-    F4_DBG_FCH4("[FCH4] dp_ing_fwd\n");
-  }
   dp_ing_l3(ctx, xf, fa);
   return dp_eg_l2(ctx, xf, fa);
 }
@@ -44,11 +41,7 @@ dp_ing_l2_top(void *ctx,  struct xfrm *xf, void *fa)
 static int __always_inline
 dp_ing_l2(void *ctx,  struct xfrm *xf, void *fa)
 {
-  // F4_DBG_PRINTK("[ING L2]");
   // dp_ing_l2_top(ctx, xf, fa);
-  if((F4_DEBUG_EXT(xf)) || (F4_DEBUG_INT(xf))) {
-    F4_DBG_FCH4("[FCH4] dp_ing_l2\n");
-  }
   return dp_ing_fwd(ctx, xf, fa);
 }
 
