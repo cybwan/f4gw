@@ -202,6 +202,7 @@ dp_ct_tcp_sm(void *ctx, struct xfrm *xf,
     debug_printf("saddr %pI4 %u\n", &xf->l34m.saddr4, xf->l34m.saddr4);
     debug_printf("daddr %pI4 %u\n", &xf->l34m.daddr4, xf->l34m.daddr4);
     debug_printf("seq=%u ack=%u\n", seq, ack);
+    debug_printf("cpu %d \n", bpf_get_smp_processor_id());
   }
 
   dp_spin_lock(&atdat->lock);
