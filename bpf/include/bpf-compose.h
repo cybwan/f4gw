@@ -446,16 +446,7 @@ handle_excp:
 static int __always_inline
 dp_unparse_packet_always(void *ctx,  struct xfrm *xf)
 {
-  if(xf->l34m.nw_proto == IPPROTO_TCP) {
-    F4_DBG_FCH4("[FCH4] dp_unparse_packet_always ========\n");
-    F4_DBG_FCH4("[FCH4] dp_unparse_packet_always xf->pm.nf %d\n", xf->pm.nf);
-  }
   if (xf->pm.nf & F4_NAT_SRC && xf->nm.dsr == 0) {
-    if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-      F4_DBG_PRINTK("[DEPR] F4_SNAT %pI4:%d\n", &xf->nm.nxip4, ntohs(xf->nm.nxport));
-      F4_DBG_FCH4("[DEPR] F4_SNAT %pI4:%d\n", &xf->nm.nxip4, ntohs(xf->nm.nxport));
-    }
-
     if (xf->l2m.dl_type == ntohs(ETH_P_IPV6) || xf->nm.nv6) {
       // dp_sunp_tcall(ctx, xf);
     } else {
@@ -464,13 +455,6 @@ dp_unparse_packet_always(void *ctx,  struct xfrm *xf)
       }
     }
   } else if (xf->pm.nf & F4_NAT_DST && xf->nm.dsr == 0) {
-    if((F4_DEBUG_INT(xf)) || (F4_DEBUG_EXT(xf))) {
-      F4_DBG_PRINTK("[DEPR] F4_DNAT %pI4 %d\n", &xf->nm.nrip4, ntohs(xf->nm.nxport));
-      F4_DBG_FCH4("[DEPR] F4_DNAT %pI4 %d\n", &xf->nm.nrip4, ntohs(xf->nm.nxport));
-    }
-    F4_DBG_FCH4("---------------------------------");
-    F4_DBG_FCH4("[DEPR] F4_DNAT nxip4 %pI4 nxport %d %d\n", &xf->nm.nxip4, ntohs(xf->nm.nxport), xf->nm.nxport);
-    F4_DBG_FCH4("[DEPR] F4_DNAT nrip4 %pI4 nrport %d %d\n", &xf->nm.nrip4, ntohs(xf->nm.nrport), xf->nm.nrport);
     if (xf->l2m.dl_type == ntohs(ETH_P_IPV6)) {
       // dp_sunp_tcall(ctx, xf);
     } else {
