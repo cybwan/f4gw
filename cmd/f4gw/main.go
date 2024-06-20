@@ -78,8 +78,9 @@ func main() {
 		log.Fatal().Msg(err.Error())
 	}
 	if workDuration == time.Duration(0) {
-		workDuration = time.Duration(^int64(0))
+		workDuration = time.Duration(1<<63 - 1)
 	}
+	fmt.Println(workDuration)
 	quitTimer := time.NewTimer(workDuration)
 	defer quitTimer.Stop()
 
