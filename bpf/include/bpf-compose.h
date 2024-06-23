@@ -8,7 +8,6 @@
 #include "bpf-dbg.h"
 #include "bpf-cdefs.h"
 #include "bpf-nat.h"
-#include "bpf-f4.h"
 
 /* IP flags */
 #define IP_CE		  0x8000		/* Flag: "Congestion"		*/
@@ -347,47 +346,6 @@ dp_parse_ipv6(struct parser *p,
   } else if (xf->l34m.nw_proto == IPPROTO_ICMPV6) {
     return dp_parse_icmp6(p, md, xf);
   }
-  return DP_PRET_OK;
-}
-
-static int __always_inline
-dp_parse_f4(struct parser *p,
-             void *md,
-             struct xfrm *xf)
-{
-  struct ethhdr *eth;
-  struct f4hdr *f4h = DP_TC_PTR(p->dbegin);
-
-  if (DP_TC_PTR(p->dbegin) + (sizeof(struct ethhdr) + sizeof(*f4h)) > p->dend) {
-    return DP_PRET_FAIL;
-  }
-
-  xf->f4m.l4proto = f4h->l4proto;
-  xf->f4m.daddr4 = f4h->daddr;
-  xf->f4m.saddr4 = f4h->saddr;
-  xf->f4m.xaddr4 = f4h->xaddr;
-  xf->f4m.dport = f4h->dport;
-  xf->f4m.sport = f4h->sport;
-  xf->f4m.xport = f4h->xport;
-
-  if (dp_remove_l2(md, (int)sizeof(*f4h))) {
-    return DP_PRET_FAIL;
-  }
-
-  void *start = DP_TC_PTR(DP_PDATA(md));
-  void *dend = DP_TC_PTR(DP_PDATA_END(md));
-
-  if (start + sizeof(*eth) > dend) {
-    return DP_DROP;
-  }
-
-  eth = DP_TC_PTR(DP_PDATA(md));
-  memcpy(eth->h_dest, xf->l2m.dl_dst, 6);
-  memcpy(eth->h_source, xf->l2m.dl_src, 6);
-  eth->h_proto = ntohs(ETH_P_IP);
-
-  xf->pm.f4 = 1;
-
   return DP_PRET_OK;
 }
 

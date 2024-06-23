@@ -88,7 +88,7 @@ dp_do_fcv4_lkup(void *ctx, struct xfrm *xf)
   xf->pm.oport = xf->nm.nxifi;
   
   dp_unparse_packet_always(ctx, xf);
-  dp_unparse_packet(ctx, xf);
+  // dp_unparse_packet(ctx, xf);
 
   F4_PPLN_RDR(xf);
 
@@ -107,12 +107,13 @@ dp_ing_fc_main(void *ctx, struct xfrm *xf)
   int oif;
   if (xf->pm.pipe_act == 0 &&
       xf->l2m.dl_type == ntohs(ETH_P_IP)) {
-    // if (dp_do_fcv4_lkup(ctx, xf) == 1) {
-    //   if (xf->pm.pipe_act == F4_PIPE_RDR) {
-    //     oif = xf->pm.oport;
-    //     return bpf_redirect(oif, 0);         
-    //   }
-    // }
+    if (dp_do_fcv4_lkup(ctx, xf) == 1) {
+      if (xf->pm.pipe_act == F4_PIPE_RDR) {
+        // oif = xf->pm.oport;
+        // return bpf_redirect(oif, 0); 
+        return DP_PASS;
+      }
+    }
   }
 
   bpf_map_update_elem(&f4gw_xfrms, &z, xf, BPF_ANY);

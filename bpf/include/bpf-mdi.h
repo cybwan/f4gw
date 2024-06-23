@@ -66,7 +66,6 @@ struct dp_pi_mdi {
     __u32            ifi;
     __u8             igr:2;
     __u8             egr:2;
-    __u8             f4:2;
     __u8             tc;
 #define LLB_DP_PORT_UPP       0x1
     __u8             pprop;
@@ -145,18 +144,6 @@ struct dp_l2_mdi {
 #define daddr4 daddr[0]
 #define xaddr4 xaddr[0]
 
-struct dp_f4_mdi {
-    __u8            l4proto;
-
-    __u16            sport;
-    __u16            dport;
-    __u16            xport;
-
-    __u32            saddr[4];
-    __u32            daddr[4];
-    __u32            xaddr[4];
-};
-
 struct dp_l34_mdi {
     __u8             tos;
     __u8             nw_proto;
@@ -204,7 +191,6 @@ struct xfrm {
     struct dp_l2_mdi  il2m;
     struct dp_l34_mdi il34m;
     struct dp_nat_mdi nm;
-    struct dp_f4_mdi  f4m;
 
     /* Pipeline Info*/
     struct dp_pi_mdi  pm;

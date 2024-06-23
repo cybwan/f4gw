@@ -3,10 +3,7 @@ package gateway
 import (
 	"fmt"
 	"net"
-	"net/netip"
 	"unsafe"
-
-	"github.com/mdlayher/arp"
 
 	"github.com/cybwan/f4gw/pkg/bpf"
 	"github.com/cybwan/f4gw/pkg/libbpf"
@@ -101,7 +98,7 @@ func (gw *F4Gw) Close() {
 	}
 }
 
-func (gw *F4Gw) AttachIngressBPF(iface string) {
+func (gw *F4Gw) AttachTCBPF(iface string) {
 	// Look up the network interface by name.
 	ingressIface, ingressErr := net.InterfaceByName(iface)
 	if ingressErr != nil {
@@ -142,45 +139,6 @@ func (gw *F4Gw) AttachIngressBPF(iface string) {
 	log.Info().Msgf("Attached tc bpf program iface %s", ingressIface.Name)
 }
 
-func (gw *F4Gw) AttachEgressBPF(iface string) {
-	// Look up the network interface by name.
-	egressIface, egressErr := net.InterfaceByName(iface)
-	if egressErr != nil {
-		log.Fatal().Msgf("lookup network egress iface %s: %s", iface, egressErr)
-		return
-	}
-
-	egressErr = libbpf.AttachXDP(iface, fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "xdp_egress"))
-	if egressErr != nil {
-		log.Fatal().Msgf("could not attach XDP program: %s", egressErr)
-		return
-	}
-
-	if addrs, addrErr := egressIface.Addrs(); addrErr == nil {
-		egr_ipv4_map, err := libbpf.GetMapByPinnedPath(fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "f4gw_egr_ipv4"))
-		if err != nil {
-			log.Fatal().Err(err).Msg(`loading f4gw_egr_ipv4`)
-		}
-		v := uint8(1)
-		for _, addr := range addrs {
-			if ipv4Addr := addr.(*net.IPNet).IP.To4(); ipv4Addr != nil {
-				if ipNb, convErr := netaddr.IPv4ToInt(ipv4Addr); convErr == nil {
-					if err := egr_ipv4_map.Update(unsafe.Pointer(&ipNb), unsafe.Pointer(&v)); err != nil {
-						log.Fatal().Err(err).Msg(`updating f4gw_igr_ipv4`)
-					}
-				}
-			}
-		}
-	}
-
-	gw.cleanCallbacks[fmt.Sprintf("Detached XDP program to egress iface %q (index %d)", egressIface.Name, egressIface.Index)] = func() error {
-		libbpf.DetachXDP(iface)
-		return nil
-	}
-
-	log.Info().Msgf("Attached XDP program to  egress iface %q (index %d)", egressIface.Name, egressIface.Index)
-}
-
 func (gw *F4Gw) ApplyNatLB(
 	dstProto L4Proto, dstAddr string, dstPort uint16,
 	backends []F4GwBackend) error {
@@ -200,7 +158,7 @@ func (gw *F4Gw) ApplyNatLB(
 	natKey.V6 = 0
 
 	natActs := DpNatTacts{}
-	natActs.Ca.ActType = uint8(DP_SET_SNAT)
+	natActs.Ca.ActType = uint8(DP_SET_DNAT)
 	natActs.SelType = uint16(NAT_LB_SEL_RR)
 
 	natActs.Nxfrm = uint16(len(backends))
@@ -234,25 +192,16 @@ func (gw *F4Gw) ApplyNatLB(
 			natActs.Nxfrms[index].NatXmac[n] = viaHWAddr[n]
 		}
 
-		backendHWAddr, backendHWAddrErr := gw.arpQuery(backend.ViaLinkName, backend.IPv4)
-		if backendHWAddrErr != nil {
-			return backendHWAddrErr
-		}
-
 		natActs.Nxfrms[index].NatRip[0], err = netaddr.IPv4ToInt(net.ParseIP(backend.IPv4))
 		if err != nil {
 			return err
 		}
 		natActs.Nxfrms[index].NatRport = netaddr.HostToNetShort(backend.Port)
-		for n := 0; n < 6; n++ {
-			natActs.Nxfrms[index].NatRmac[n] = backendHWAddr[n]
-		}
 
 		if gw.attachedXdpLinks == nil {
 			gw.attachedXdpLinks = make(map[string]uint8)
 		}
 		if _, attached := gw.attachedXdpLinks[backend.ViaLinkName]; !attached {
-			gw.AttachEgressBPF(backend.ViaLinkName)
 			gw.attachedXdpLinks[backend.ViaLinkName] = 1
 		}
 	}
@@ -267,22 +216,4 @@ func (gw *F4Gw) linkQuery(ifaceName string) (net.HardwareAddr, int, error) {
 	}
 
 	return iface.HardwareAddr, iface.Index, nil
-}
-
-func (gw *F4Gw) arpQuery(viaIface, ipAddr string) (net.HardwareAddr, error) {
-	iface, ifaceErr := net.InterfaceByName(viaIface)
-	if ifaceErr != nil {
-		log.Error().Msgf("lookup network egress iface %s: %s", viaIface, ifaceErr)
-		return nil, ifaceErr
-	}
-
-	client, clientErr := arp.Dial(iface)
-	if clientErr != nil {
-		log.Error().Err(clientErr)
-		return nil, clientErr
-	}
-
-	defer client.Close()
-
-	return client.Resolve(netip.MustParseAddr(ipAddr))
 }

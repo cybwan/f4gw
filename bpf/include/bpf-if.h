@@ -5,53 +5,11 @@
 #include "bpf-compose.h"
 #include "bpf-l2.h"
 #include "bpf-lb.h"
-#include "bpf-f4.h"
 
 static int __always_inline
 dp_redir_packet(void *ctx,  struct xfrm *xf)
 {
   return DP_REDIRECT;
-}
-
-static int __always_inline
-dp_f4_packet(void *ctx,  struct xfrm *xf)
-{
-  struct ethhdr *neth;
-  struct f4hdr *f4hdr;
-  void *dend;
-
-  if (dp_add_l2(ctx, (int)sizeof(*f4hdr))) {
-    /* This can fail to push headroom for tunnelled packets.
-     * It might be better to pass it rather than drop it in case
-     * of failure
-     */
-    return -1;
-  }
-
-  neth = DP_TC_PTR(DP_PDATA(ctx));
-  dend = DP_TC_PTR(DP_PDATA_END(ctx));
-  if (neth + 1 > dend) {
-    return -1;
-  }
-
-  DP_XMAC_CP(neth->h_dest, xf->l2m.dl_dst);
-  DP_XMAC_CP(neth->h_source, xf->l2m.dl_src);
-  neth->h_proto = htons(ETH_P_F4); 
-  
-  f4hdr = DP_ADD_PTR(neth, sizeof(*neth));
-  if (f4hdr + 1 > dend) {
-    return -1;
-  }
-
-  f4hdr->l4proto = xf->f4m.l4proto;
-  f4hdr->daddr = xf->f4m.daddr4;
-  f4hdr->saddr = xf->f4m.saddr4;
-  f4hdr->xaddr = xf->f4m.xaddr4;
-  f4hdr->dport = xf->f4m.dport;
-  f4hdr->sport = xf->f4m.sport;
-  f4hdr->xport = xf->f4m.xport;
-
-  return 0;
 }
 
 static int __always_inline
@@ -82,7 +40,14 @@ dp_insert_fcv4(void *ctx, struct xfrm *xf, struct dp_fc_tacts *acts)
 static int __always_inline
 dp_pipe_check_res(void *ctx, struct xfrm *xf, void *fa)
 {
-  debug_printf("dp_pipe_check_res pipe_act=%d \n", xf->pm.pipe_act);
+  if ( xf->pm.igr == 1 && \
+    xf->l2m.dl_type == ntohs(ETH_P_IP) && \
+    xf->l34m.nw_proto == IPPROTO_TCP && \
+    xf->l34m.saddr4 == 367175872 && \
+    xf->l34m.daddr4 == 3305231619 && \
+    xf->l34m.dest == htons(80) ) {
+    debug_printf("tc_ingress dp_pipe_check_res pipe_act %u\n", xf->pm.pipe_act);
+  }
   if (xf->pm.pipe_act) {
 
     if (xf->pm.pipe_act & F4_PIPE_DROP) {
@@ -90,26 +55,25 @@ dp_pipe_check_res(void *ctx, struct xfrm *xf, void *fa)
     }
 
     if (xf->pm.pipe_act & F4_PIPE_RDR) {
-      DP_XMAC_CP(xf->l2m.dl_src, xf->nm.nxmac);
-      DP_XMAC_CP(xf->l2m.dl_dst, xf->nm.nrmac);
+      // DP_XMAC_CP(xf->l2m.dl_src, xf->nm.nxmac);
+      // DP_XMAC_CP(xf->l2m.dl_dst, xf->nm.nrmac);
       xf->pm.oport = xf->nm.nxifi;
     }
-    debug_printf("dp_pipe_check_res oport=%d \n", xf->pm.oport);
 
     if (dp_unparse_packet_always(ctx, xf) != 0) {
         return DP_DROP;
     }
 
     if (xf->pm.pipe_act & F4_PIPE_RDR_MASK) {
-      if (dp_unparse_packet(ctx, xf) != 0) {
-        return DP_DROP;
-      }
+      // if (dp_unparse_packet(ctx, xf) != 0) {
+      //   return DP_DROP;
+      // }
       // if (xf->pm.f4) {
       //   if (dp_f4_packet(ctx, xf) != 0) {
       //     return DP_DROP;
       //   }
       // }
-      return bpf_redirect(xf->pm.oport, 0);
+      // return bpf_redirect(xf->pm.oport, BPF_F_INGRESS);
     }
 
   }
@@ -126,11 +90,26 @@ dp_ing_ct_main(void *ctx,  struct xfrm *xf)
   if (!fa) return DP_DROP;
 
   if (xf->pm.igr && (xf->pm.phit & F4_DP_CTM_HIT) == 0) {
+    if ( xf->pm.igr == 1 && \
+      xf->l2m.dl_type == ntohs(ETH_P_IP) && \
+      xf->l34m.nw_proto == IPPROTO_TCP && \
+      xf->l34m.saddr4 == 367175872 && \
+      xf->l34m.daddr4 == 3305231619 && \
+      xf->l34m.dest == htons(80) ) {
+      debug_printf("tc_ingress dp_do_nat\n");
+    }
     dp_do_nat(ctx, xf);
   }
 
   val = dp_ct_in(ctx, xf);
-  debug_printf("dp_ing_ct_main dp_ct_in %d\n", val);
+  if ( xf->pm.igr == 1 && \
+    xf->l2m.dl_type == ntohs(ETH_P_IP) && \
+    xf->l34m.nw_proto == IPPROTO_TCP && \
+    xf->l34m.saddr4 == 367175872 && \
+    xf->l34m.daddr4 == 3305231619 && \
+    xf->l34m.dest == htons(80) ) {
+    debug_printf("tc_ingress dp_ct_in val %u\n", val);
+  }
   if (val < 0) {
     return DP_PASS;
   }

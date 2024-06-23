@@ -28,6 +28,11 @@ BPF_CFLAGS = \
 CGO_CFLAGS_DYN = "-I. -I./bpf/include -I/usr/include/"
 CGO_LDFLAGS_DYN = "-lelf -lz -lbpf"
 
+.default: build
+
+.PHONY: build
+build: bpf go
+
 .PHONY: bpf-fmt
 bpf-fmt:
 	find . -regex '.*\.\(c\|h\)' -exec clang-format -style=file -i {} \;

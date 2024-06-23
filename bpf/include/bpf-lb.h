@@ -108,7 +108,6 @@ dp_sel_nat_ep(void *ctx, struct xfrm *xf, struct dp_nat_tacts *act)
     }
   }
 
-  // F4_DBG_NTLB("[NTLB] lb-sel %d\n", sel);
   return sel;
 }
 
@@ -134,14 +133,6 @@ dp_do_nat(void *ctx, struct xfrm *xf)
     key.v6 = 1;
   }
 
-  // if (F4_DEBUG_PKT(xf)) {
-  //   F4_DBG_NTLB("[NTLB] Lookup");
-  //   F4_DBG_NTLB("[NTLB] src addr=%pI4\n", &xf->l34m.saddr4);
-  //   F4_DBG_NTLB("[NTLB] dst addr=%pI4\n", &xf->l34m.daddr4);
-  //   F4_DBG_NTLB("[NTLB] src port=%d\n", ntohs(xf->l34m.source));
-  //   F4_DBG_NTLB("[NTLB] dst port=%d\n", ntohs(xf->l34m.dest));
-  // }
-
   memset(&key, 0, sizeof(key));
   key.l4proto = xf->l34m.nw_proto;
   key.v6 = 0;
@@ -149,7 +140,7 @@ dp_do_nat(void *ctx, struct xfrm *xf)
   act = bpf_map_lookup_elem(&f4gw_nat, &key);
   if (!act) {
     /* Default action - Nothing to do */
-    xf->pm.nf &= ~F4_NAT_SRC;
+    xf->pm.nf &= ~F4_NAT_DST;
     return 0;
   }
 
@@ -183,16 +174,7 @@ dp_do_nat(void *ctx, struct xfrm *xf)
       xf->nm.sel_aid = sel;
       xf->nm.ito = act->ito;
       xf->pm.rule_id =  act->ca.cidx;
-      // if (F4_DEBUG_PKT(xf)) {
-      //   F4_DBG_NTLB("[NTLB] ACT %x\n", xf->pm.nf);
-      //   F4_DBG_NTLB("[NTLB] nxip4 %pI4\n", &xf->nm.nxip4);
-      //   F4_DBG_NTLB("[NTLB] rxip4 %pI4\n", &xf->nm.nrip4);
-      //   F4_DBG_NTLB("[NTLB] nxifi %d\n", xf->nm.nxifi);
-      //   F4_DBG_NTLB("[NTLB] nxmac %02x:%02x:%02x\n", xf->nm.nxmac[0],xf->nm.nxmac[1],xf->nm.nxmac[2]);
-      //   F4_DBG_NTLB("[NTLB] nxmac %02x:%02x:%02x\n", xf->nm.nxmac[3],xf->nm.nxmac[4],xf->nm.nxmac[5]);
-      //   F4_DBG_NTLB("[NTLB] nrmac %02x:%02x:%02x\n", xf->nm.nrmac[0],xf->nm.nrmac[1],xf->nm.nrmac[2]);
-      //   F4_DBG_NTLB("[NTLB] nrmac %02x:%02x:%02x\n", xf->nm.nrmac[3],xf->nm.nrmac[4],xf->nm.nrmac[5]);
-      // }
+
       /* Special case related to host-dnat */
       if (xf->l34m.saddr4 == xf->nm.nxip4 && xf->pm.nf == F4_NAT_DST) {
         xf->nm.nxip4 = 0;
@@ -204,14 +186,25 @@ dp_do_nat(void *ctx, struct xfrm *xf)
     F4_PPLN_DROPC(xf, F4_PIPE_RC_ACT_UNK);
   }
 
-  xf->f4m.l4proto = xf->l34m.nw_proto;
-  xf->f4m.daddr4 = xf->l34m.daddr4;
-  xf->f4m.saddr4 = xf->l34m.saddr4;
-  xf->f4m.xaddr4 = xf->nm.nxip4;
-  xf->f4m.dport = xf->l34m.dest;
-  xf->f4m.sport = xf->l34m.source;
-  xf->f4m.xport = xf->nm.nxport;
-  xf->pm.f4 = 1;
+  // xf->f4m.l4proto = xf->l34m.nw_proto;
+  // xf->f4m.daddr4 = xf->l34m.daddr4;
+  // xf->f4m.saddr4 = xf->l34m.saddr4;
+  // xf->f4m.xaddr4 = xf->nm.nxip4;
+  // xf->f4m.dport = xf->l34m.dest;
+  // xf->f4m.sport = xf->l34m.source;
+  // xf->f4m.xport = xf->nm.nxport;
+
+  if ( xf->pm.igr == 1 && \
+    xf->l2m.dl_type == ntohs(ETH_P_IP) && \
+    xf->l34m.nw_proto == IPPROTO_TCP && \
+    xf->l34m.saddr4 == 367175872 && \
+    xf->l34m.daddr4 == 3305231619 && \
+    xf->l34m.dest == htons(80) ) {
+    debug_printf("tc_ingress dp_do_nat saddr4 %u daddr4 %u\n", xf->l34m.saddr4, xf->l34m.daddr4);
+    debug_printf("tc_ingress dp_do_nat nxip4 %u nxport %u\n", xf->nm.nxip4, ntohs(xf->nm.nxport));
+    debug_printf("tc_ingress dp_do_nat nrip4 %u nrport %u\n", xf->nm.nrip4, ntohs(xf->nm.nrport));
+    debug_printf("tc_ingress dp_do_nat sport %u dport %u\n", ntohs(xf->l34m.source), ntohs(xf->l34m.dest));
+  }
 
   return 1;
 }

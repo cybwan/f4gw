@@ -4,7 +4,6 @@
 #include <linux/pkt_cls.h>
 #include <stdio.h>
 #include "bpf-dbg.h"
-#include "bpf-f4.h"
 
 #define DP_IFI(md) (((struct __sk_buff *)md)->ifindex)
 #define DP_IIFI(md) (((struct __sk_buff *)md)->ingress_ifindex)

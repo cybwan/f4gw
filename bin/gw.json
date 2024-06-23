@@ -11,9 +11,9 @@
           "targetPort": 0,
           "backends": [
             {
-              "viaLinkName": "ens33",
-              "viaLinkAddr": "192.168.127.32",
-              "ipv4": "192.168.127.33",
+              "viaLinkName": "ens34",
+              "viaLinkAddr": "192.168.226.32",
+              "ipv4": "192.168.226.32",
               "port": 0
             }
           ]
@@ -25,9 +25,9 @@
           "targetPort": 0,
           "backends": [
             {
-              "viaLinkName": "ens33",
-              "viaLinkAddr": "192.168.127.32",
-              "ipv4": "192.168.127.33",
+              "viaLinkName": "ens34",
+              "viaLinkAddr": "192.168.226.32",
+              "ipv4": "192.168.226.32",
               "port": 8688
             }
           ]
@@ -39,9 +39,9 @@
           "targetPort": 0,
           "backends": [
             {
-              "viaLinkName": "ens33",
-              "viaLinkAddr": "192.168.127.32",
-              "ipv4": "192.168.127.33",
+              "viaLinkName": "ens34",
+              "viaLinkAddr": "192.168.226.32",
+              "ipv4": "192.168.226.32",
               "port": 8689
             }
           ]
