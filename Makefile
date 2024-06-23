@@ -32,13 +32,18 @@ CGO_LDFLAGS_DYN = "-lelf -lz -lbpf"
 bpf-fmt:
 	find . -regex '.*\.\(c\|h\)' -exec clang-format -style=file -i {} \;
 
+.PHONY: bpf-build
 bpf-build: ${BIN_DIR}/${XDP_GATEWAY_OUT}
 
 ${BIN_DIR}/${XDP_GATEWAY_OUT}: ${SRC_DIR}/${XDP_GATEWAY_SRC}
 	clang -I${INC_DIR} ${BPF_CFLAGS} -emit-llvm -c -g $< -o - | llc -march=bpf -filetype=obj -o $@
 
+.PHONY: bpf-clean
 bpf-clean:
 	rm -f ${BIN_DIR}/${XDP_GATEWAY_OUT}
+
+.PHONY: bpf
+bpf: bpf-clean bpf-build
 
 .PHONY: go-fmt
 go-fmt:
