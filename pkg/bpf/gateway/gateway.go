@@ -139,7 +139,7 @@ func (gw *F4Gw) AttachIngressBPF(iface string) {
 		return nil
 	}
 
-	log.Info().Msgf("Attached tc bpf program iface %q (index %d)", ingressIface.Name, ingressIface.Index)
+	log.Info().Msgf("Attached tc bpf program iface %s", ingressIface.Name)
 }
 
 func (gw *F4Gw) AttachEgressBPF(iface string) {
