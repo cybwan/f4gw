@@ -100,3 +100,12 @@ nat netflow messages:
 bpftool map dump name f4gw_nat_opts
 ```
 
+## TC
+
+```
+tc qdisc add dev lo clsact
+tc filter add dev lo ingress bpf da obj ../tc_kern.o sec classifier/ingress
+tc filter add dev lo egress  bpf da obj ../tc_kern.o sec classifier/egress
+tc filter add dev lo ingress bpf object-pinned /sys/fs/bpf/bpf-sched-cls-test/demo
+```
+
