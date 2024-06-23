@@ -186,37 +186,25 @@ dp_do_nat(void *ctx, struct xfrm *xf)
     F4_PPLN_DROPC(xf, F4_PIPE_RC_ACT_UNK);
   }
 
-  // xf->f4m.l4proto = xf->l34m.nw_proto;
-  // xf->f4m.daddr4 = xf->l34m.daddr4;
-  // xf->f4m.saddr4 = xf->l34m.saddr4;
-  // xf->f4m.xaddr4 = xf->nm.nxip4;
-  // xf->f4m.dport = xf->l34m.dest;
-  // xf->f4m.sport = xf->l34m.source;
-  // xf->f4m.xport = xf->nm.nxport;
+  if (xf->l34m.nw_proto == IPPROTO_TCP || xf->l34m.nw_proto == IPPROTO_UDP) {
+    struct dp_nat_opt_key okey;
+    struct dp_nat_opt_tact oact;
 
-  // if ( xf->pm.igr == 1 && \
-  //   xf->l2m.dl_type == ntohs(ETH_P_IP) && \
-  //   xf->l34m.nw_proto == IPPROTO_TCP && \
-  //   xf->l34m.saddr4 == 367175872 && \
-  //   xf->l34m.daddr4 == 3305231619 && \
-  //   xf->l34m.dest == htons(80) ) {
-  //   debug_printf("tc_ingress dp_do_nat saddr4 %u daddr4 %u\n", xf->l34m.saddr4, xf->l34m.daddr4);
-  //   debug_printf("tc_ingress dp_do_nat nxip4 %u nxport %u\n", xf->nm.nxip4, ntohs(xf->nm.nxport));
-  //   debug_printf("tc_ingress dp_do_nat nrip4 %u nrport %u\n", xf->nm.nrip4, ntohs(xf->nm.nrport));
-  //   debug_printf("tc_ingress dp_do_nat sport %u dport %u\n", ntohs(xf->l34m.source), ntohs(xf->l34m.dest));
-  // }
+    memset(&okey, 0, sizeof(okey));
+    memset(&oact, 0, sizeof(oact));
 
-  // if ( xf->pm.egr == 1 && \
-  //   xf->l2m.dl_type == ntohs(ETH_P_IP) && \
-  //   xf->l34m.nw_proto == IPPROTO_TCP && \
-  //   xf->l34m.saddr4 == 551725248 && \
-  //   xf->l34m.daddr4 == 367175872 && \
-  //   xf->l34m.source == htons(8689) ) {
-  //   debug_printf("tc_egress dp_do_nat saddr4 %u daddr4 %u\n", xf->l34m.saddr4, xf->l34m.daddr4);
-  //   debug_printf("tc_egress dp_do_nat nxip4 %u nxport %u\n", xf->nm.nxip4, ntohs(xf->nm.nxport));
-  //   debug_printf("tc_egress dp_do_nat nrip4 %u nrport %u\n", xf->nm.nrip4, ntohs(xf->nm.nrport));
-  //   debug_printf("tc_egress dp_do_nat sport %u dport %u\n", ntohs(xf->l34m.source), ntohs(xf->l34m.dest));
-  // }
+    okey.v6 = 0;
+    okey.l4proto = xf->l34m.nw_proto;
+    okey.xaddr = xf->l34m.saddr4;
+    okey.xport = ntohs(xf->l34m.source);
+
+    oact.daddr = xf->l34m.daddr4;
+    oact.saddr = xf->l34m.saddr4;
+    oact.dport = ntohs(xf->l34m.dest);
+    oact.sport = ntohs(xf->l34m.source);
+
+    bpf_map_update_elem(&f4gw_nat_opts, &okey, &oact, BPF_ANY);
+  }
 
   return 1;
 }
