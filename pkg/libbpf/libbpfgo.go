@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 	"unsafe"
@@ -71,6 +72,7 @@ func MountBpfFS(path string) (bool, error) {
 const (
 	bpftool_cmd = `/usr/sbin/bpftool`
 	ip_cmd      = `/usr/sbin/ip`
+	tc_cmd      = `/usr/sbin/tc`
 )
 
 func LoadAll(bpffs, progName, progFile string) error {
@@ -123,6 +125,106 @@ func DetachXDP(dev string) error {
 		`off`,
 	}
 	cmd := exec.Command(ip_cmd, args...)
+	_, err := cmd.Output()
+	return err
+}
+
+func ExistTCQDisc(dev string) bool {
+	args := []string{
+		`qdisc`,
+		`add`,
+		`dev`,
+		dev,
+		`clsact`,
+	}
+	cmd := exec.Command(tc_cmd, args...)
+	bytes, err := cmd.Output()
+	if err != nil {
+		return false
+	}
+	return strings.Contains(string(bytes), "qdisc clsact")
+}
+
+func AddTCQDisc(dev string) error {
+	args := []string{
+		`qdisc`,
+		`add`,
+		`dev`,
+		dev,
+		`clsact`,
+	}
+	cmd := exec.Command(tc_cmd, args...)
+	_, err := cmd.Output()
+	return err
+}
+
+func DelTCQDisc(dev string) error {
+	args := []string{
+		`qdisc`,
+		`del`,
+		`dev`,
+		dev,
+		`clsact`,
+	}
+	cmd := exec.Command(tc_cmd, args...)
+	_, err := cmd.Output()
+	return err
+}
+
+func AttachTCIngress(dev, pinnedFile string) error {
+	args := []string{
+		`filter`,
+		`add`,
+		`dev`,
+		dev,
+		`ingress`,
+		`bpf`,
+		`object-pinned`,
+		pinnedFile,
+	}
+	cmd := exec.Command(tc_cmd, args...)
+	_, err := cmd.Output()
+	return err
+}
+
+func DetachTCIngress(dev string) error {
+	args := []string{
+		`filter`,
+		`del`,
+		`dev`,
+		dev,
+		`ingress`,
+	}
+	cmd := exec.Command(tc_cmd, args...)
+	_, err := cmd.Output()
+	return err
+}
+
+func AttachTCEgress(dev, pinnedFile string) error {
+	args := []string{
+		`filter`,
+		`add`,
+		`dev`,
+		dev,
+		`egress`,
+		`bpf`,
+		`object-pinned`,
+		pinnedFile,
+	}
+	cmd := exec.Command(tc_cmd, args...)
+	_, err := cmd.Output()
+	return err
+}
+
+func DetachTCEgress(dev string) error {
+	args := []string{
+		`filter`,
+		`del`,
+		`dev`,
+		dev,
+		`egress`,
+	}
+	cmd := exec.Command(tc_cmd, args...)
 	_, err := cmd.Output()
 	return err
 }

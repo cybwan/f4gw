@@ -109,11 +109,12 @@ func (gw *F4Gw) AttachIngressBPF(iface string) {
 		return
 	}
 
-	ingressErr = libbpf.AttachXDP(iface, fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "xdp_ingress"))
-	if ingressErr != nil {
-		log.Fatal().Msgf("could not attach XDP program: %s", ingressErr)
-		return
+	if !libbpf.ExistTCQDisc(iface) {
+		libbpf.AddTCQDisc(iface)
 	}
+
+	libbpf.AttachTCIngress(iface, fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "classifier_ingress"))
+	libbpf.AttachTCEgress(iface, fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "classifier_egress"))
 
 	if addrs, addrErr := ingressIface.Addrs(); addrErr == nil {
 		igr_ipv4_map, err := libbpf.GetMapByPinnedPath(fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "f4gw_igr_ipv4"))
@@ -132,12 +133,13 @@ func (gw *F4Gw) AttachIngressBPF(iface string) {
 		}
 	}
 
-	gw.cleanCallbacks[fmt.Sprintf("Detached XDP program to ingress iface %q (index %d)", ingressIface.Name, ingressIface.Index)] = func() error {
-		libbpf.DetachXDP(iface)
+	gw.cleanCallbacks[fmt.Sprintf("Detached tc ingress & egress iface %q (index %d)", ingressIface.Name, ingressIface.Index)] = func() error {
+		libbpf.DetachTCIngress(iface)
+		libbpf.DetachTCEgress(iface)
 		return nil
 	}
 
-	log.Info().Msgf("Attached XDP program to ingress iface %q (index %d)", ingressIface.Name, ingressIface.Index)
+	log.Info().Msgf("Attached tc bpf program iface %q (index %d)", ingressIface.Name, ingressIface.Index)
 }
 
 func (gw *F4Gw) AttachEgressBPF(iface string) {

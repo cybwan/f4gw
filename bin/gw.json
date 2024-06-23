@@ -2,49 +2,49 @@
   "workDuration": "9000s",
   "ingress": [
     {
-      "linkName": "ens34"
-    }
-  ],
-  "egress": [
-    {
-      "_comment": "ICMP",
-      "targetProto": 1,
-      "targetAddr": "0.0.0.0",
-      "targetPort": 0,
-      "backends": [
+      "linkName": "ens34",
+      "proxies": [
         {
-          "viaLinkName": "ens33",
-          "viaLinkAddr": "192.168.127.32",
-          "ipv4": "192.168.127.33",
-          "port": 0
-        }
-      ]
-    },
-    {
-      "_comment": "UDP",
-      "targetProto": 17,
-      "targetAddr": "0.0.0.0",
-      "targetPort": 0,
-      "backends": [
+          "_comment": "ICMP",
+          "targetProto": 1,
+          "targetAddr": "0.0.0.0",
+          "targetPort": 0,
+          "backends": [
+            {
+              "viaLinkName": "ens33",
+              "viaLinkAddr": "192.168.127.32",
+              "ipv4": "192.168.127.33",
+              "port": 0
+            }
+          ]
+        },
         {
-          "viaLinkName": "ens33",
-          "viaLinkAddr": "192.168.127.32",
-          "ipv4": "192.168.127.33",
-          "port": 8688
-        }
-      ]
-    },
-    {
-      "_comment": "TCP",
-      "targetProto": 6,
-      "targetAddr": "0.0.0.0",
-      "targetPort": 0,
-      "backends": [
+          "_comment": "UDP",
+          "targetProto": 17,
+          "targetAddr": "0.0.0.0",
+          "targetPort": 0,
+          "backends": [
+            {
+              "viaLinkName": "ens33",
+              "viaLinkAddr": "192.168.127.32",
+              "ipv4": "192.168.127.33",
+              "port": 8688
+            }
+          ]
+        },
         {
-          "viaLinkName": "ens33",
-          "viaLinkAddr": "192.168.127.32",
-          "ipv4": "192.168.127.33",
-          "port": 8689
+          "_comment": "TCP",
+          "targetProto": 6,
+          "targetAddr": "0.0.0.0",
+          "targetPort": 0,
+          "backends": [
+            {
+              "viaLinkName": "ens33",
+              "viaLinkAddr": "192.168.127.32",
+              "ipv4": "192.168.127.33",
+              "port": 8689
+            }
+          ]
         }
       ]
     }

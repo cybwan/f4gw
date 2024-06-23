@@ -49,10 +49,11 @@ type F4GwBackend struct {
 }
 
 type F4GwIngress struct {
-	LinkName string `json:"linkName"`
+	LinkName string      `json:"linkName"`
+	Proxies  []F4GwProxy `json:"proxies"`
 }
 
-type F4GwEgress struct {
+type F4GwProxy struct {
 	TargetProto L4Proto       `json:"targetProto"`
 	TargetAddr  string        `json:"targetAddr"`
 	TargetPort  uint16        `json:"targetPort"`
@@ -62,5 +63,4 @@ type F4GwEgress struct {
 type F4GwConfig struct {
 	WorkDuration string        `json:"workDuration"`
 	Ingress      []F4GwIngress `json:"ingress"`
-	Egress       []F4GwEgress  `json:"egress"`
 }
