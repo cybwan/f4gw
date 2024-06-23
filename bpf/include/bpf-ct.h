@@ -94,7 +94,7 @@ dp_ct_proto_xfk_init(struct xfrm *xf,
   if (xi->nat_flags & F4_NAT_DST) {
     xkey->v6 = (__u8)(xi->nv6);
     DP_XADDR_CP(xkey->saddr, xi->nat_rip);
-    DP_XADDR_CP(xkey->daddr, xi->nat_xip);
+    // DP_XADDR_CP(xkey->daddr, xi->nat_xip);
     DP_XADDR_CP(xxi->nat_xip, key->daddr);
     DP_XADDR_CP(xxi->nat_rip, key->saddr);
     if (key->l4proto != IPPROTO_ICMP) {
@@ -109,7 +109,7 @@ dp_ct_proto_xfk_init(struct xfrm *xf,
   }
   if (xi->nat_flags & F4_NAT_SRC) {
     xkey->v6 = xi->nv6;
-    DP_XADDR_CP(xkey->saddr, xi->nat_rip);
+    // DP_XADDR_CP(xkey->saddr, xi->nat_rip);
     DP_XADDR_CP(xkey->daddr, xi->nat_xip);
     DP_XADDR_CP(xxi->nat_rip, xf->l34m.saddr);
     DP_XADDR_CP(xxi->nat_xip, xf->l34m.daddr);
@@ -121,12 +121,12 @@ dp_ct_proto_xfk_init(struct xfrm *xf,
       xxi->nat_rport = key->sport;
     }
 
-    xxi->nat_xifi = xf->pm.ifi;
+    // xxi->nat_xifi = xf->pm.ifi;
     xxi->nat_flags = F4_NAT_DST;
     xxi->nv6 = key->v6;
     
-    DP_XMAC_CP(xxi->nat_xmac, xf->l2m.dl_dst);
-    DP_XMAC_CP(xxi->nat_rmac, xf->l2m.dl_src);
+    // DP_XMAC_CP(xxi->nat_xmac, xf->l2m.dl_dst);
+    // DP_XMAC_CP(xxi->nat_rmac, xf->l2m.dl_src);
   }
   if (xi->nat_flags & F4_NAT_HDST) {
     DP_XADDR_CP(xkey->saddr, key->saddr);
@@ -805,9 +805,9 @@ dp_ct_in(void *ctx, struct xfrm *xf)
   xi->nat_flags = xf->pm.nf;
   DP_XADDR_CP(xi->nat_xip, xf->nm.nxip);
   DP_XADDR_CP(xi->nat_rip, xf->nm.nrip);
-  DP_XMAC_CP(xi->nat_xmac, xf->nm.nxmac);
-  DP_XMAC_CP(xi->nat_rmac, xf->nm.nrmac);
-  xi->nat_xifi = xf->nm.nxifi;
+  // DP_XMAC_CP(xi->nat_xmac, xf->nm.nxmac);
+  // DP_XMAC_CP(xi->nat_rmac, xf->nm.nrmac);
+  // xi->nat_xifi = xf->nm.nxifi;
   xi->nat_xport = xf->nm.nxport;
   xi->nat_rport = xf->nm.nrport;
   xi->nv6 = xf->nm.nv6;
@@ -818,8 +818,8 @@ dp_ct_in(void *ctx, struct xfrm *xf)
   xxi->nat_rport = 0;
   DP_XADDR_SETZR(xxi->nat_xip);
   DP_XADDR_SETZR(xxi->nat_rip);
-  DP_XMAC_SETZR(xxi->nat_xmac);
-  DP_XMAC_SETZR(xxi->nat_rmac);
+  // DP_XMAC_SETZR(xxi->nat_xmac);
+  // DP_XMAC_SETZR(xxi->nat_rmac);
 
   if (xf->pm.nf & (F4_NAT_DST|F4_NAT_SRC)) {
     if (DP_XADDR_ISZR(xi->nat_xip)) {
@@ -845,9 +845,9 @@ dp_ct_in(void *ctx, struct xfrm *xf)
                              DP_SET_DNAT: DP_SET_SNAT;
       DP_XADDR_CP(adat->nat_act.xip,  xi->nat_xip);
       DP_XADDR_CP(adat->nat_act.rip, xi->nat_rip);
-      DP_XMAC_CP(adat->nat_act.xmac,  xi->nat_xmac);
-      DP_XMAC_CP(adat->nat_act.rmac, xi->nat_rmac);
-      adat->nat_act.xifi = xi->nat_xifi;
+      // DP_XMAC_CP(adat->nat_act.xmac,  xi->nat_xmac);
+      // DP_XMAC_CP(adat->nat_act.rmac, xi->nat_rmac);
+      // adat->nat_act.xifi = xi->nat_xifi;
       adat->nat_act.xport = xi->nat_xport;
       adat->nat_act.rport = xi->nat_rport;
       adat->nat_act.doct = 0;
@@ -879,9 +879,9 @@ dp_ct_in(void *ctx, struct xfrm *xf)
                              DP_SET_DNAT: DP_SET_SNAT;
       DP_XADDR_CP(axdat->nat_act.xip, xxi->nat_xip);
       DP_XADDR_CP(axdat->nat_act.rip, xxi->nat_rip);
-      DP_XMAC_CP(axdat->nat_act.xmac, xxi->nat_xmac);
-      DP_XMAC_CP(axdat->nat_act.rmac, xxi->nat_rmac);
-      axdat->nat_act.xifi = xxi->nat_xifi;
+      // DP_XMAC_CP(axdat->nat_act.xmac, xxi->nat_xmac);
+      // DP_XMAC_CP(axdat->nat_act.rmac, xxi->nat_rmac);
+      // axdat->nat_act.xifi = xxi->nat_xifi;
       axdat->nat_act.xport = xxi->nat_xport;
       axdat->nat_act.rport = xxi->nat_rport;
       axdat->nat_act.doct = 0;

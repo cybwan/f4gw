@@ -40,14 +40,14 @@ dp_insert_fcv4(void *ctx, struct xfrm *xf, struct dp_fc_tacts *acts)
 static int __always_inline
 dp_pipe_check_res(void *ctx, struct xfrm *xf, void *fa)
 {
-  if ( xf->pm.igr == 1 && \
-    xf->l2m.dl_type == ntohs(ETH_P_IP) && \
-    xf->l34m.nw_proto == IPPROTO_TCP && \
-    xf->l34m.saddr4 == 367175872 && \
-    xf->l34m.daddr4 == 3305231619 && \
-    xf->l34m.dest == htons(80) ) {
-    debug_printf("tc_ingress dp_pipe_check_res pipe_act %u\n", xf->pm.pipe_act);
-  }
+  // if ( xf->pm.igr == 1 && \
+  //   xf->l2m.dl_type == ntohs(ETH_P_IP) && \
+  //   xf->l34m.nw_proto == IPPROTO_TCP && \
+  //   xf->l34m.saddr4 == 367175872 && \
+  //   xf->l34m.daddr4 == 3305231619 && \
+  //   xf->l34m.dest == htons(80) ) {
+  //   debug_printf("tc_ingress dp_pipe_check_res pipe_act %u\n", xf->pm.pipe_act);
+  // }
   if (xf->pm.pipe_act) {
 
     if (xf->pm.pipe_act & F4_PIPE_DROP) {
@@ -89,27 +89,44 @@ dp_ing_ct_main(void *ctx,  struct xfrm *xf)
   fa = bpf_map_lookup_elem(&f4gw_fcas, &val);
   if (!fa) return DP_DROP;
 
+  // if ( xf->pm.egr == 1 && \
+  //   xf->l2m.dl_type == ntohs(ETH_P_IP) && \
+  //   xf->l34m.nw_proto == IPPROTO_TCP && \
+  //   xf->l34m.saddr4 == 551725248 && \
+  //   xf->l34m.daddr4 == 367175872 && \
+  //   xf->l34m.source == htons(8689) ) {
+  //   debug_printf("tc_egress dp_ing_ct_main saddr4 %u daddr4 %u\n", xf->l34m.saddr4, xf->l34m.daddr4);
+  // }
+
   if (xf->pm.igr && (xf->pm.phit & F4_DP_CTM_HIT) == 0) {
-    if ( xf->pm.igr == 1 && \
-      xf->l2m.dl_type == ntohs(ETH_P_IP) && \
-      xf->l34m.nw_proto == IPPROTO_TCP && \
-      xf->l34m.saddr4 == 367175872 && \
-      xf->l34m.daddr4 == 3305231619 && \
-      xf->l34m.dest == htons(80) ) {
-      debug_printf("tc_ingress dp_do_nat\n");
-    }
+    // if ( xf->pm.igr == 1 && \
+    //   xf->l2m.dl_type == ntohs(ETH_P_IP) && \
+    //   xf->l34m.nw_proto == IPPROTO_TCP && \
+    //   xf->l34m.saddr4 == 367175872 && \
+    //   xf->l34m.daddr4 == 3305231619 && \
+    //   xf->l34m.dest == htons(80) ) {
+    //   debug_printf("tc_ingress dp_do_nat\n");
+    // }
     dp_do_nat(ctx, xf);
   }
 
   val = dp_ct_in(ctx, xf);
-  if ( xf->pm.igr == 1 && \
-    xf->l2m.dl_type == ntohs(ETH_P_IP) && \
-    xf->l34m.nw_proto == IPPROTO_TCP && \
-    xf->l34m.saddr4 == 367175872 && \
-    xf->l34m.daddr4 == 3305231619 && \
-    xf->l34m.dest == htons(80) ) {
-    debug_printf("tc_ingress dp_ct_in val %u\n", val);
-  }
+  // if ( xf->pm.igr == 1 && \
+  //   xf->l2m.dl_type == ntohs(ETH_P_IP) && \
+  //   xf->l34m.nw_proto == IPPROTO_TCP && \
+  //   xf->l34m.saddr4 == 367175872 && \
+  //   xf->l34m.daddr4 == 3305231619 && \
+  //   xf->l34m.dest == htons(80) ) {
+  //   debug_printf("tc_ingress dp_ct_in val %u\n", val);
+  // }
+  // if ( xf->pm.egr == 1 && \
+  //   xf->l2m.dl_type == ntohs(ETH_P_IP) && \
+  //   xf->l34m.nw_proto == IPPROTO_TCP && \
+  //   xf->l34m.saddr4 == 551725248 && \
+  //   xf->l34m.daddr4 == 367175872 && \
+  //   xf->l34m.source == htons(8689) ) {
+  //   debug_printf("tc_ingress dp_ct_in val %d\n", val);
+  // }
   if (val < 0) {
     return DP_PASS;
   }

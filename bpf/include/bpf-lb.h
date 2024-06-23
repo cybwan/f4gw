@@ -194,17 +194,29 @@ dp_do_nat(void *ctx, struct xfrm *xf)
   // xf->f4m.sport = xf->l34m.source;
   // xf->f4m.xport = xf->nm.nxport;
 
-  if ( xf->pm.igr == 1 && \
-    xf->l2m.dl_type == ntohs(ETH_P_IP) && \
-    xf->l34m.nw_proto == IPPROTO_TCP && \
-    xf->l34m.saddr4 == 367175872 && \
-    xf->l34m.daddr4 == 3305231619 && \
-    xf->l34m.dest == htons(80) ) {
-    debug_printf("tc_ingress dp_do_nat saddr4 %u daddr4 %u\n", xf->l34m.saddr4, xf->l34m.daddr4);
-    debug_printf("tc_ingress dp_do_nat nxip4 %u nxport %u\n", xf->nm.nxip4, ntohs(xf->nm.nxport));
-    debug_printf("tc_ingress dp_do_nat nrip4 %u nrport %u\n", xf->nm.nrip4, ntohs(xf->nm.nrport));
-    debug_printf("tc_ingress dp_do_nat sport %u dport %u\n", ntohs(xf->l34m.source), ntohs(xf->l34m.dest));
-  }
+  // if ( xf->pm.igr == 1 && \
+  //   xf->l2m.dl_type == ntohs(ETH_P_IP) && \
+  //   xf->l34m.nw_proto == IPPROTO_TCP && \
+  //   xf->l34m.saddr4 == 367175872 && \
+  //   xf->l34m.daddr4 == 3305231619 && \
+  //   xf->l34m.dest == htons(80) ) {
+  //   debug_printf("tc_ingress dp_do_nat saddr4 %u daddr4 %u\n", xf->l34m.saddr4, xf->l34m.daddr4);
+  //   debug_printf("tc_ingress dp_do_nat nxip4 %u nxport %u\n", xf->nm.nxip4, ntohs(xf->nm.nxport));
+  //   debug_printf("tc_ingress dp_do_nat nrip4 %u nrport %u\n", xf->nm.nrip4, ntohs(xf->nm.nrport));
+  //   debug_printf("tc_ingress dp_do_nat sport %u dport %u\n", ntohs(xf->l34m.source), ntohs(xf->l34m.dest));
+  // }
+
+  // if ( xf->pm.egr == 1 && \
+  //   xf->l2m.dl_type == ntohs(ETH_P_IP) && \
+  //   xf->l34m.nw_proto == IPPROTO_TCP && \
+  //   xf->l34m.saddr4 == 551725248 && \
+  //   xf->l34m.daddr4 == 367175872 && \
+  //   xf->l34m.source == htons(8689) ) {
+  //   debug_printf("tc_egress dp_do_nat saddr4 %u daddr4 %u\n", xf->l34m.saddr4, xf->l34m.daddr4);
+  //   debug_printf("tc_egress dp_do_nat nxip4 %u nxport %u\n", xf->nm.nxip4, ntohs(xf->nm.nxport));
+  //   debug_printf("tc_egress dp_do_nat nrip4 %u nrport %u\n", xf->nm.nrip4, ntohs(xf->nm.nrport));
+  //   debug_printf("tc_egress dp_do_nat sport %u dport %u\n", ntohs(xf->l34m.source), ntohs(xf->l34m.dest));
+  // }
 
   return 1;
 }

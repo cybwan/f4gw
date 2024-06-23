@@ -111,6 +111,17 @@ dp_ing_fc_main(void *ctx, struct xfrm *xf)
       if (xf->pm.pipe_act == F4_PIPE_RDR) {
         // oif = xf->pm.oport;
         // return bpf_redirect(oif, 0); 
+        if ( xf->pm.egr == 1 && \
+          xf->l2m.dl_type == ntohs(ETH_P_IP) && \
+          xf->l34m.nw_proto == IPPROTO_TCP && \
+          xf->l34m.saddr4 == 551725248 && \
+          xf->l34m.daddr4 == 367175872 && \
+          xf->l34m.source == htons(8689) ) {
+          debug_printf("\n");
+          debug_printf("\n");
+          debug_printf("---------------------------------------\n");
+          debug_printf("tc_egress dp_ing_fc_maindp_do_fcv4_lkup\n");
+        }
         return DP_PASS;
       }
     }
