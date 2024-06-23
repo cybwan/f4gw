@@ -1,8 +1,0 @@
-{
-  "workDuration": "9000s",
-  "ingress": [
-    {
-      "linkName": "ens33"
-    }
-  ]
-}

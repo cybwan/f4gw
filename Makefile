@@ -14,11 +14,7 @@ BPF_DIR = $(abspath ${BASE_DIR})/bpf
 XDP_GATEWAY_OUT = gateway.kern.o
 XDP_GATEWAY_SRC = $(patsubst %.o,%.c,${XDP_GATEWAY_OUT})
 
-XDP_PROXY_OUT = proxy.kern.o
-XDP_PROXY_SRC = $(patsubst %.o,%.c,${XDP_PROXY_OUT})
-
 F4GW_OUT = f4gw
-F4PROXY_OUT = f4proxy
 
 BPF_CFLAGS = \
 	-O2 \
@@ -36,17 +32,13 @@ CGO_LDFLAGS_DYN = "-lelf -lz -lbpf"
 bpf-fmt:
 	find . -regex '.*\.\(c\|h\)' -exec clang-format -style=file -i {} \;
 
-bpf-build: ${BIN_DIR}/${XDP_GATEWAY_OUT} ${BIN_DIR}/${XDP_PROXY_OUT}
+bpf-build: ${BIN_DIR}/${XDP_GATEWAY_OUT}
 
 ${BIN_DIR}/${XDP_GATEWAY_OUT}: ${SRC_DIR}/${XDP_GATEWAY_SRC}
 	clang -I${INC_DIR} ${BPF_CFLAGS} -emit-llvm -c -g $< -o - | llc -march=bpf -filetype=obj -o $@
 
-${BIN_DIR}/${XDP_PROXY_OUT}: ${SRC_DIR}/${XDP_PROXY_SRC}
-	clang -I${INC_DIR} ${BPF_CFLAGS} -emit-llvm -c -g $< -o - | llc -march=bpf -filetype=obj -o $@
-
 bpf-clean:
 	rm -f ${BIN_DIR}/${XDP_GATEWAY_OUT}
-	rm -f ${BIN_DIR}/${XDP_PROXY_OUT}
 
 .PHONY: go-fmt
 go-fmt:
@@ -61,28 +53,15 @@ go-build-f4gw: $(LIBBPF_OBJ)
 	$(GO) build \
 	-o ${BIN_DIR}/${F4GW_OUT} ./cmd/${F4GW_OUT}
 
-.PHONY: go-build-f4proxy
-go-build-f4proxy:
-	CC=$(CLANG) \
-	CGO_CFLAGS=$(CGO_CFLAGS_DYN) \
-	CGO_LDFLAGS=$(CGO_LDFLAGS_DYN) \
-	GOOS=linux GOARCH=$(ARCH) \
-	$(GO) build \
-	-o ${BIN_DIR}/${F4PROXY_OUT} ./cmd/${F4PROXY_OUT}
-
 .PHONY: go
-go: go-build-f4gw go-build-f4proxy
+go: go-build-f4gw
 
 .PHONY: go-clean
 go-clean:
 	rm -f ${BIN_DIR}/${F4GW_OUT}
-	rm -f ${BIN_DIR}/${F4PROXY_OUT}
 
 f4gw-run: go
 	${BIN_DIR}/${F4GW_OUT} -c ${BIN_DIR}/gw.json
-
-f4proxy-run:
-	${BIN_DIR}/${F4PROXY_OUT} -c ${BIN_DIR}/proxy.json
 
 TARGETS := linux/amd64 linux/arm64
 DIST_DIRS    := find * -type d -exec
@@ -102,12 +81,9 @@ dist:
 		$(DIST_DIRS) cp ../LICENSE {} \; && \
 		$(DIST_DIRS) cp ../README.md {} \; && \
 		$(DIST_DIRS) cp ../bin/gw.json {} \; && \
-		$(DIST_DIRS) cp ../bin/proxy.json {} \; && \
 		$(DIST_DIRS) cp ../bin/proxy.js {} \; && \
 		$(DIST_DIRS) cp ../bin/gateway.kern.o {} \; && \
-		$(DIST_DIRS) cp ../bin/proxy.kern.o {} \; && \
 		$(DIST_DIRS) cp ../bin/f4gw {} \; && \
-		$(DIST_DIRS) cp ../bin/f4proxy {} \; && \
 		$(DIST_DIRS) tar -zcf f4gw-${VERSION}-{}.tar.gz {} \; && \
 		$(DIST_DIRS) zip -r f4gw-${VERSION}-{}.zip {} \; && \
 		$(SHA256) f4gw-* > sha256sums.txt \
