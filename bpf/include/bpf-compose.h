@@ -424,9 +424,10 @@ dp_parse_d0(void *md,
       return 0;
     }
     ret = dp_parse_ipv6(&p, md, xf);
-  } else if (xf->l2m.dl_type == htons(ETH_P_F4)) {
-    ret = dp_parse_f4(&p, md, xf);
-  }
+  } 
+  // else if (xf->l2m.dl_type == htons(ETH_P_F4)) {
+  //   ret = dp_parse_f4(&p, md, xf);
+  // }
 
   if (ret != 0) {
     goto handle_excp;

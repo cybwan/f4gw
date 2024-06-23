@@ -2,17 +2,17 @@
 #define __F4_BPF_CDEFS_H__
 
 #include <linux/pkt_cls.h>
+#include <stdio.h>
 #include "bpf-dbg.h"
 #include "bpf-f4.h"
 
-#define DP_IFI(md) (((struct xdp_md *)md)->ingress_ifindex)
-#define DP_IIFI(md) (((struct xdp_md *)md)->ingress_ifindex)
-#define DP_OIFI(md) (0)
-#define DP_PDATA(md) (((struct xdp_md *)md)->data)
-#define DP_PDATA_END(md) (((struct xdp_md *)md)->data_end)
-#define DP_MDATA(md) (((struct xdp_md *)md)->data_meta)
-#define DP_GET_LEN(md)  ((((struct xdp_md *)md)->data_end) - \
-                         (((struct xdp_md *)md)->data)) \
+#define DP_IFI(md) (((struct __sk_buff *)md)->ifindex)
+#define DP_IIFI(md) (((struct __sk_buff *)md)->ingress_ifindex)
+#define DP_OIFI(md) (((struct __sk_buff *)md)->ifindex)
+#define DP_PDATA(md) (((struct __sk_buff *)md)->data)
+#define DP_PDATA_END(md) (((struct __sk_buff *)md)->data_end)
+#define DP_MDATA(md) (((struct __sk_buff *)md)->data_meta)
+#define DP_GET_LEN(md) (((struct __sk_buff *)md)->len)
 
 #define F4_PPLN_RDR(F)      (F->pm.pipe_act |= F4_PIPE_RDR);
 #define F4_PPLN_RDR_PRIO(F) (F->pm.pipe_act |= F4_PIPE_RDR_PRIO);
@@ -21,9 +21,9 @@
 
 #define DP_F4_IS_EGR(md) (0)
 
-#define DP_REDIRECT XDP_REDIRECT
-#define DP_DROP     XDP_DROP
-#define DP_PASS     XDP_PASS
+#define DP_REDIRECT TC_ACT_REDIRECT
+#define DP_DROP     TC_ACT_SHOT
+#define DP_PASS     TC_ACT_OK
 
 #define F4_PPLN_PASSC(F, C)          \
 do {                                  \
@@ -118,25 +118,28 @@ dp_l4_port_checksum_diff(__u16 seed, struct dp_t2_port *new, struct dp_t2_port *
 static int __always_inline
 dp_add_l2(void *md, int delta)
 {
-  return bpf_xdp_adjust_head(md, -delta);
+  return bpf_skb_change_head(md, delta, 0);
 }
 
 static int __always_inline
 dp_remove_l2(void *md, int delta)
 {
-  return bpf_xdp_adjust_head(md, delta);
+  return bpf_skb_adjust_room(md, -delta, BPF_ADJ_ROOM_MAC, 
+                        BPF_F_ADJ_ROOM_FIXED_GSO);
 }
 
 static int __always_inline
 dp_buf_add_room(void *md, int delta, __u64 flags)
 {
-  return bpf_xdp_adjust_head(md, -delta);
+  return bpf_skb_adjust_room(md, delta, BPF_ADJ_ROOM_MAC,
+                            flags);
 }
 
 static int __always_inline
 dp_buf_delete_room(void *md, int delta, __u64 flags)
 {
-  return bpf_xdp_adjust_head(md, delta);
+  return bpf_skb_adjust_room(md, -delta, BPF_ADJ_ROOM_MAC, 
+                            flags);
 }
 
 static int __always_inline

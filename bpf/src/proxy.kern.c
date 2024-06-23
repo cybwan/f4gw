@@ -27,8 +27,8 @@
 
 char __LICENSE[] SEC("license") = "GPL";
 
-SEC("xdp/ingress")
-int xdp_ingress(struct xdp_md *ctx) {
+SEC("classifier/ingress")
+int tc_ingress(struct __sk_buff *ctx) {
   int z = 0;
   struct xfrm *xf;
 

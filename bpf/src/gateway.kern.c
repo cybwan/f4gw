@@ -27,8 +27,8 @@
 
 char __LICENSE[] SEC("license") = "GPL";
 
-SEC("xdp/ingress")
-int xdp_ingress(struct xdp_md *ctx) {
+SEC("classifier/ingress")
+int tc_ingress(struct __sk_buff *ctx) {
   int z = 0;
   struct xfrm *xf;
 
@@ -43,11 +43,14 @@ int xdp_ingress(struct xdp_md *ctx) {
 
   dp_parse_d0(ctx, xf, 1);
 
-  return dp_ing_fc_main(ctx, xf);
+  debug_printf("saddr4 %pi4\n", &xf->l34m.saddr4);
+
+  //return dp_ing_fc_main(ctx, xf);
+  return DP_PASS;
 }
 
-SEC("xdp/egress")
-int xdp_egress(struct xdp_md *ctx) {
+SEC("classifier/egress")
+int tc_egress(struct __sk_buff *ctx) {
   int z = 0;
   struct xfrm *xf;
 
@@ -62,11 +65,12 @@ int xdp_egress(struct xdp_md *ctx) {
 
   dp_parse_d0(ctx, xf, 1);
 
-  return dp_ing_fc_main(ctx, xf);
+  // return dp_ing_fc_main(ctx, xf);
+  return DP_PASS;
 }
 
-SEC("xdp/slow_func")
-int xdp_packet_slow_func(struct xdp_md *ctx) {
+SEC("classifier/slow")
+int tc_packet_slow_func(struct __sk_buff *ctx) {
   int z = 0;
   struct xfrm *xf;
 
@@ -87,8 +91,8 @@ int xdp_packet_slow_func(struct xdp_md *ctx) {
   return dp_ing_slow_main(ctx, xf);
 }
 
-SEC("xdp/ct_func")
-int xdp_conn_track_func(struct xdp_md *ctx) {
+SEC("classifier/ct")
+int tc_conn_track_func(struct __sk_buff *ctx) {
   int z = 0;
   struct xfrm *xf;
 
@@ -100,12 +104,12 @@ int xdp_conn_track_func(struct xdp_md *ctx) {
   return dp_ing_ct_main(ctx, xf);
 }
 
-SEC("xdp/pass")
-int xdp_pass(struct xdp_md *ctx) {
+SEC("classifier/pass")
+int tc_pass(struct __sk_buff *ctx) {
   return DP_PASS;
 }
 
-SEC("xdp/drop")
-int xdp_drop(struct xdp_md *ctx) {
+SEC("classifier/drop")
+int tc_drop(struct __sk_buff *ctx) {
   return DP_DROP;
 }
