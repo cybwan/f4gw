@@ -51,7 +51,7 @@ func (gw *F4Gw) Init() {
 		log.Fatal().Err(err).Msg(`loading f4gw_progs`)
 	}
 
-	slow_func_fd, err := libbpf.OpenObjPinned(fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "xdp_slow_func"))
+	slow_func_fd, err := libbpf.OpenObjPinned(fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "classifier_slow"))
 	if err != nil {
 		log.Fatal().Err(err).Msg(`loading xdp_slow_func`)
 	}
@@ -61,7 +61,7 @@ func (gw *F4Gw) Init() {
 		log.Fatal().Err(err).Msg(`updating f4gw_progs`)
 	}
 
-	ct_func_fd, err := libbpf.OpenObjPinned(fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "xdp_ct_func"))
+	ct_func_fd, err := libbpf.OpenObjPinned(fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "classifier_ct"))
 	if err != nil {
 		log.Fatal().Err(err).Msg(`loading xdp_ct_func`)
 	}
@@ -71,7 +71,7 @@ func (gw *F4Gw) Init() {
 		log.Fatal().Err(err).Msg(`updating f4gw_progs`)
 	}
 
-	pass_func_fd, err := libbpf.OpenObjPinned(fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "xdp_pass"))
+	pass_func_fd, err := libbpf.OpenObjPinned(fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "classifier_pass"))
 	if err != nil {
 		log.Fatal().Err(err).Msg(`loading xdp_pass`)
 	}
@@ -81,7 +81,7 @@ func (gw *F4Gw) Init() {
 		log.Fatal().Err(err).Msg(`updating f4gw_progs`)
 	}
 
-	drop_func_fd, err := libbpf.OpenObjPinned(fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "xdp_drop"))
+	drop_func_fd, err := libbpf.OpenObjPinned(fmt.Sprintf("%s/%s/%s", bpf.BPF_FS, gw.prog, "classifier_drop"))
 	if err != nil {
 		log.Fatal().Err(err).Msg(`loading xdp_pass`)
 	}

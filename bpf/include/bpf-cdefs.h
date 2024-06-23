@@ -25,94 +25,29 @@
 #define DP_DROP     TC_ACT_SHOT
 #define DP_PASS     TC_ACT_OK
 
-#define F4_PPLN_PASSC(F, C)          \
-do {                                  \
-  F->pm.pipe_act |= F4_PIPE_PASS;    \
-  F->pm.rcode |= C;                   \
+#define F4_PPLN_PASSC(F, C)         \
+do {                                \
+  F->pm.pipe_act |= F4_PIPE_PASS;   \
+  F->pm.rcode |= C;                 \
 } while (0)
 
 #define F4_PPLN_DROPC(F, C)         \
-do {                                  \
-  F->pm.pipe_act |= F4_PIPE_DROP;    \
-  F->pm.rcode |= C;                   \
+do {                                \
+  F->pm.pipe_act |= F4_PIPE_DROP;   \
+  F->pm.rcode |= C;                 \
 } while (0)
 
 #define F4_PPLN_TRAPC(F,C)          \
-do {                                  \
-  F->pm.pipe_act |= F4_PIPE_TRAP;    \
-  F->pm.rcode = C;                    \
+do {                                \
+  F->pm.pipe_act |= F4_PIPE_TRAP;   \
+  F->pm.rcode = C;                  \
 } while (0)
 
-static __always_inline
-__u16 sdbm(__u8 *ptr, __u8 len)
+static __u32 __always_inline
+dp_get_pkt_hash(void *md)
 {
-  __u64 hash = 0;
-  __u8 c;
-  
-#pragma clang loop unroll(full)
-  for(__u8 n = 0; n < len; n++) {
-      c = ptr[n];
-      // hash = c & 0xff + (hash << 6) + (hash << 16) - hash;
-  }
-
-  return (__u16)(hash & 0xffff);
-}
-
-static __always_inline
-__u32 dp_get_pkt_hash(struct xfrm *xf)
-{
-  struct dp_t4 h = { 
-    .saddr = xf->l34m.saddr4, 
-    .daddr = xf->l34m.daddr4, 
-    .source = xf->l34m.source, 
-    .dest = xf->l34m.dest };
-  return sdbm((__u8 *)&h, sizeof(struct dp_t4));
-}
-
-static __always_inline
-__u16 dp_csum_fold_helper(__u32 csum)
-{
-    __u32 sum;
-    sum = (csum >> 16) + (csum & 0xffff);
-    sum += (sum >> 16);
-    return ~sum;
-}
-
-static __always_inline
-__u16 dp_ipv4_checksum_diff(__u16 seed, struct iphdr *new, struct iphdr *old)
-{
-    __u32 csum, size = sizeof(struct iphdr);   
-    csum = bpf_csum_diff((__be32 *)old, size, (__be32 *)new, size, seed);
-    return dp_csum_fold_helper(csum);
-}
-
-static __always_inline
-__u16 dp_icmp_checksum_diff(__u16 seed, struct icmphdr *new, struct icmphdr *old)
-{
-    __u32 csum, size = sizeof(struct icmphdr);   
-    csum = bpf_csum_diff((__be32 *)old, size, (__be32 *)new, size, seed);
-    return dp_csum_fold_helper(csum);
-}
-
-static __always_inline __u16
-dp_l4_checksum_diff(__u16 seed, struct dp_t4 *new, struct dp_t4 *old) {
-    __u32 csum, size = sizeof(struct dp_t4);
-    csum = bpf_csum_diff((__be32 *)old, size, (__be32 *)new, size, seed);
-    return dp_csum_fold_helper(csum);
-}
-
-static __always_inline __u16
-dp_l4_addr_checksum_diff(__u16 seed, struct dp_t2_addr *new, struct dp_t2_addr *old) {
-    __u32 csum, size = sizeof(struct dp_t2_addr);
-    csum = bpf_csum_diff((__be32 *)old, size, (__be32 *)new, size, seed);
-    return dp_csum_fold_helper(csum);
-}
-
-static __always_inline __u16
-dp_l4_port_checksum_diff(__u16 seed, struct dp_t2_port *new, struct dp_t2_port *old) {
-    __u32 csum, size = sizeof(struct dp_t2_port);
-    csum = bpf_csum_diff((__be32 *)old, size, (__be32 *)new, size, seed);
-    return dp_csum_fold_helper(csum);
+  bpf_set_hash_invalid(md);
+  return bpf_get_hash_recalc(md);
 }
 
 static int __always_inline
@@ -151,30 +86,14 @@ dp_redirect_port(void *tbl, struct xfrm *xf)
 static int __always_inline
 dp_set_tcp_src_ip(void *md, struct xfrm *xf, __be32 xip)
 {
-  void *dend = DP_TC_PTR(DP_PDATA_END(md));
+  int ip_csum_off  = xf->pm.l3_off + offsetof(struct iphdr, check);
+  int tcp_csum_off = xf->pm.l4_off + offsetof(struct tcphdr, check);
+  int ip_src_off = xf->pm.l3_off + offsetof(struct iphdr, saddr);
+  __be32 old_sip = xf->l34m.saddr4;
 
-  struct iphdr *iph = DP_TC_PTR(DP_PDATA(md) + xf->pm.l3_off);
-  if ((void *)(iph + 1) > dend)  {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLRT_ERR);
-    return -1;
-  }
-
-  struct tcphdr *tcp = DP_ADD_PTR(DP_PDATA(md), xf->pm.l4_off);
-  if ((void *)(tcp + 1) > dend) {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLERR);
-    return -1;
-  }
-
-  struct dp_t2_addr o = {.daddr = xf->l34m.daddr4, .saddr = xf->l34m.saddr4};
-  struct dp_t2_addr n = {.daddr = xf->l34m.daddr4, .saddr = xip};
-  tcp->check = dp_l4_addr_checksum_diff(~(tcp->check), &n, &o);
-
-  __u16 old_csum = iph->check;
-  iph->check = 0;
-  struct iphdr old = *iph;
-  iph->saddr = xip;
-  iph->daddr = xf->l34m.daddr4;
-  iph->check = dp_ipv4_checksum_diff(~old_csum, iph, &old);
+  bpf_l4_csum_replace(md, tcp_csum_off, old_sip, xip, BPF_F_PSEUDO_HDR |sizeof(xip));
+  bpf_l3_csum_replace(md, ip_csum_off, old_sip, xip, sizeof(xip));
+  bpf_skb_store_bytes(md, ip_src_off, &xip, sizeof(xip), 0);
 
   xf->l34m.saddr4 = xip;
 
@@ -184,31 +103,14 @@ dp_set_tcp_src_ip(void *md, struct xfrm *xf, __be32 xip)
 static int __always_inline
 dp_set_tcp_dst_ip(void *md, struct xfrm *xf, __be32 xip)
 {
-  void *dend = DP_TC_PTR(DP_PDATA_END(md));
+  int ip_csum_off  = xf->pm.l3_off + offsetof(struct iphdr, check);
+  int tcp_csum_off = xf->pm.l4_off + offsetof(struct tcphdr, check);
+  int ip_dst_off = xf->pm.l3_off + offsetof(struct iphdr, daddr);
+  __be32 old_dip = xf->l34m.daddr4;
 
-  struct iphdr *iph = DP_TC_PTR(DP_PDATA(md) + xf->pm.l3_off);
-  if ((void *)(iph + 1) > dend)  {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLRT_ERR);
-    return -1;
-  }
-
-  struct tcphdr *tcp = DP_ADD_PTR(DP_PDATA(md), xf->pm.l4_off);
-  if ((void *)(tcp + 1) > dend) {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLERR);
-    return -1;
-  }
-
-  struct dp_t2_addr o = {.saddr = xf->l34m.saddr4, .daddr = xf->l34m.daddr4};
-  struct dp_t2_addr n = {.saddr = xf->l34m.saddr4, .daddr = xip};
-  tcp->check = dp_l4_addr_checksum_diff(~(tcp->check), &n, &o);
-
-  __u16 old_csum = iph->check;
-  iph->check = 0;
-  struct iphdr old = *iph;
-  iph->saddr = xf->l34m.saddr4;
-  iph->daddr = xip;
-  iph->check = dp_ipv4_checksum_diff(~old_csum, iph, &old);
-
+  bpf_l4_csum_replace(md, tcp_csum_off, old_dip, xip, BPF_F_PSEUDO_HDR | sizeof(xip));
+  bpf_l3_csum_replace(md, ip_csum_off, old_dip, xip, sizeof(xip));
+  bpf_skb_store_bytes(md, ip_dst_off, &xip, sizeof(xip), 0);
   xf->l34m.daddr4 = xip;
 
   return 0;
@@ -217,19 +119,14 @@ dp_set_tcp_dst_ip(void *md, struct xfrm *xf, __be32 xip)
 static int __always_inline
 dp_set_tcp_sport(void *md, struct xfrm *xf, __be16 xport)
 {
-  void *dend = DP_TC_PTR(DP_PDATA_END(md));
+  int tcp_csum_off = xf->pm.l4_off + offsetof(struct tcphdr, check);
+  int tcp_sport_off = xf->pm.l4_off + offsetof(struct tcphdr, source);
+  __be32 old_sport = xf->l34m.source;
 
-  struct tcphdr *tcp = DP_ADD_PTR(DP_PDATA(md), xf->pm.l4_off);
-  if ((void *)(tcp + 1) > dend) {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLERR);
-    return -1;
-  }
+  if (xf->l34m.frg || !xport) return 0;
 
-  struct dp_t2_port o = {.dest = xf->l34m.dest, .source = xf->l34m.source};
-  struct dp_t2_port n = {.dest = xf->l34m.dest, .source = xport};
-  tcp->check = dp_l4_port_checksum_diff(~(tcp->check), &n, &o);
-  tcp->source = xport;
-
+  bpf_l4_csum_replace(md, tcp_csum_off, old_sport, xport, sizeof(xport));
+  bpf_skb_store_bytes(md, tcp_sport_off, &xport, sizeof(xport), 0);
   xf->l34m.source = xport;
 
   return 0;
@@ -238,19 +135,14 @@ dp_set_tcp_sport(void *md, struct xfrm *xf, __be16 xport)
 static int __always_inline
 dp_set_tcp_dport(void *md, struct xfrm *xf, __be16 xport)
 {
-  void *dend = DP_TC_PTR(DP_PDATA_END(md));
+  int tcp_csum_off = xf->pm.l4_off + offsetof(struct tcphdr, check);
+  int tcp_dport_off = xf->pm.l4_off + offsetof(struct tcphdr, dest);
+  __be32 old_dport = xf->l34m.dest;
 
-  struct tcphdr *tcp = DP_ADD_PTR(DP_PDATA(md), xf->pm.l4_off);
-  if ((void *)(tcp + 1) > dend) {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLERR);
-    return -1;
-  }
+  if (xf->l34m.frg) return 0;
 
-  struct dp_t2_port o = {.source = xf->l34m.source, .dest = xf->l34m.dest};
-  struct dp_t2_port n = {.source = xf->l34m.source, .dest = xport};
-  tcp->check = dp_l4_port_checksum_diff(~(tcp->check), &n, &o);
-  tcp->dest = xport;
-
+  bpf_l4_csum_replace(md, tcp_csum_off, old_dport, xport, sizeof(xport));
+  bpf_skb_store_bytes(md, tcp_dport_off, &xport, sizeof(xport), 0);
   xf->l34m.dest = xport;
 
   return 0;
@@ -259,31 +151,14 @@ dp_set_tcp_dport(void *md, struct xfrm *xf, __be16 xport)
 static int __always_inline
 dp_set_udp_src_ip(void *md, struct xfrm *xf, __be32 xip)
 {
-  void *dend = DP_TC_PTR(DP_PDATA_END(md));
-
-  struct iphdr *iph = DP_TC_PTR(DP_PDATA(md) + xf->pm.l3_off);
-  if ((void *)(iph + 1) > dend)  {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLRT_ERR);
-    return -1;
-  }
-
-  struct udphdr *udp = DP_ADD_PTR(DP_PDATA(md), xf->pm.l4_off);
-  if ((void *)(udp + 1) > dend) {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLERR);
-    return -1;
-  }
-
-  struct dp_t2_addr o = {.daddr = xf->l34m.daddr4, .saddr = xf->l34m.saddr4};
-  struct dp_t2_addr n = {.daddr = xf->l34m.daddr4, .saddr = xip};
-  udp->check = dp_l4_addr_checksum_diff(~(udp->check), &n, &o);
-
-  __u16 old_csum = iph->check;
-  iph->check = 0;
-  struct iphdr old = *iph;
-  iph->saddr = xip;
-  iph->daddr = xf->l34m.daddr4;
-  iph->check = dp_ipv4_checksum_diff(~old_csum, iph, &old);
-
+  int ip_csum_off  = xf->pm.l3_off + offsetof(struct iphdr, check);
+  int udp_csum_off = xf->pm.l4_off + offsetof(struct udphdr, check);
+  int ip_src_off = xf->pm.l3_off + offsetof(struct iphdr, saddr);
+  __be32 old_sip = xf->l34m.saddr4;
+  
+  bpf_l4_csum_replace(md, udp_csum_off, old_sip, xip, BPF_F_PSEUDO_HDR |sizeof(xip));
+  bpf_l3_csum_replace(md, ip_csum_off, old_sip, xip, sizeof(xip));
+  bpf_skb_store_bytes(md, ip_src_off, &xip, sizeof(xip), 0);
   xf->l34m.saddr4 = xip;
 
   return 0;
@@ -292,31 +167,14 @@ dp_set_udp_src_ip(void *md, struct xfrm *xf, __be32 xip)
 static int __always_inline
 dp_set_udp_dst_ip(void *md, struct xfrm *xf, __be32 xip)
 {
-  void *dend = DP_TC_PTR(DP_PDATA_END(md));
+  int ip_csum_off  = xf->pm.l3_off + offsetof(struct iphdr, check);
+  int udp_csum_off = xf->pm.l4_off + offsetof(struct udphdr, check);
+  int ip_dst_off = xf->pm.l3_off + offsetof(struct iphdr, daddr);
+  __be32 old_dip = xf->l34m.daddr4;
 
-  struct iphdr *iph = DP_TC_PTR(DP_PDATA(md) + xf->pm.l3_off);
-  if ((void *)(iph + 1) > dend)  {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLRT_ERR);
-    return -1;
-  }
-
-  struct udphdr *udp = DP_ADD_PTR(DP_PDATA(md), xf->pm.l4_off);
-  if ((void *)(udp + 1) > dend) {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLERR);
-    return -1;
-  }
-
-  struct dp_t2_addr o = {.saddr = xf->l34m.saddr4, .daddr = xf->l34m.daddr4};
-  struct dp_t2_addr n = {.saddr = xf->l34m.saddr4, .daddr = xip};
-  udp->check = dp_l4_addr_checksum_diff(~(udp->check), &n, &o);
-
-  __u16 old_csum = iph->check;
-  iph->check = 0;
-  struct iphdr old = *iph;
-  iph->saddr = xf->l34m.saddr4;
-  iph->daddr = xip;
-  iph->check = dp_ipv4_checksum_diff(~old_csum, iph, &old);
-
+  bpf_l4_csum_replace(md, udp_csum_off, old_dip, xip, BPF_F_PSEUDO_HDR | sizeof(xip));
+  bpf_l3_csum_replace(md, ip_csum_off, old_dip, xip, sizeof(xip));
+  bpf_skb_store_bytes(md, ip_dst_off, &xip, sizeof(xip), 0);
   xf->l34m.daddr4 = xip;
 
   return 0;
@@ -325,19 +183,14 @@ dp_set_udp_dst_ip(void *md, struct xfrm *xf, __be32 xip)
 static int __always_inline
 dp_set_udp_sport(void *md, struct xfrm *xf, __be16 xport)
 {
-  void *dend = DP_TC_PTR(DP_PDATA_END(md));
+  int udp_csum_off = xf->pm.l4_off + offsetof(struct udphdr, check);
+  int udp_sport_off = xf->pm.l4_off + offsetof(struct udphdr, source);
+  __be32 old_sport = xf->l34m.source;
 
-  struct udphdr *udp = DP_ADD_PTR(DP_PDATA(md), xf->pm.l4_off);
-  if ((void *)(udp + 1) > dend) {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLERR);
-    return -1;
-  }
+  if (xf->l34m.frg || !xport) return 0;
 
-  struct dp_t2_port o = {.dest = xf->l34m.dest, .source = xf->l34m.source};
-  struct dp_t2_port n = {.dest = xf->l34m.dest, .source = xport};
-  udp->check = dp_l4_port_checksum_diff(~(udp->check), &n, &o);
-  udp->source = xport;
-
+  bpf_l4_csum_replace(md, udp_csum_off, old_sport, xport, sizeof(xport));
+  bpf_skb_store_bytes(md, udp_sport_off, &xport, sizeof(xport), 0);
   xf->l34m.source = xport;
 
   return 0;
@@ -346,19 +199,14 @@ dp_set_udp_sport(void *md, struct xfrm *xf, __be16 xport)
 static int __always_inline
 dp_set_udp_dport(void *md, struct xfrm *xf, __be16 xport)
 {
-  void *dend = DP_TC_PTR(DP_PDATA_END(md));
+  int udp_csum_off = xf->pm.l4_off + offsetof(struct udphdr, check);
+  int udp_dport_off = xf->pm.l4_off + offsetof(struct udphdr, dest);
+  __be32 old_dport = xf->l34m.dest;
 
-  struct udphdr *udp = DP_ADD_PTR(DP_PDATA(md), xf->pm.l4_off);
-  if ((void *)(udp + 1) > dend) {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLERR);
-    return -1;
-  }
+  if (xf->l34m.frg) return 0;
 
-  struct dp_t2_port o = {.dest = xf->l34m.dest, .source = xf->l34m.source};
-  struct dp_t2_port n = {.dest = xport, .source = xf->l34m.source};
-  udp->check = dp_l4_port_checksum_diff(~(udp->check), &n, &o);
-  udp->dest = xport;
-
+  bpf_l4_csum_replace(md, udp_csum_off, old_dport, xport, sizeof(xport));
+  bpf_skb_store_bytes(md, udp_dport_off, &xport, sizeof(xport), 0);
   xf->l34m.dest = xport;
 
   return 0;
@@ -367,32 +215,12 @@ dp_set_udp_dport(void *md, struct xfrm *xf, __be16 xport)
 static int __always_inline
 dp_set_icmp_src_ip(void *md, struct xfrm *xf, __be32 xip)
 {
-  void *dend = DP_TC_PTR(DP_PDATA_END(md));
-
-  struct iphdr *iph = DP_TC_PTR(DP_PDATA(md) + xf->pm.l3_off);
-  if ((void *)(iph + 1) > dend)  {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLRT_ERR);
-    return -1;
-  }
-
-  struct icmphdr *icmp = DP_ADD_PTR(DP_PDATA(md), xf->pm.l4_off);
-  if ((void *)(icmp + 1) > dend) {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLERR);
-    return -1;
-  }
-
-  __u16 old_icmp_csum = icmp->checksum;
-  icmp->checksum = 0; 
-  struct icmphdr old_icmp = *icmp;
-  icmp->checksum = dp_icmp_checksum_diff(~old_icmp_csum, icmp, &old_icmp);
-
-  __u16 old_csum = iph->check;
-  iph->check = 0;
-  struct iphdr old = *iph;
-  iph->saddr = xip;
-  iph->daddr = xf->l34m.daddr4;
-  iph->check = dp_ipv4_checksum_diff(~old_csum, iph, &old);
-
+  int ip_csum_off  = xf->pm.l3_off + offsetof(struct iphdr, check);
+  int ip_src_off = xf->pm.l3_off + offsetof(struct iphdr, saddr);
+  __be32 old_sip = xf->l34m.saddr4;
+ 
+  bpf_l3_csum_replace(md, ip_csum_off, old_sip, xip, sizeof(xip));
+  bpf_skb_store_bytes(md, ip_src_off, &xip, sizeof(xip), 0);
   xf->l34m.saddr4 = xip;
 
   return 0;
@@ -401,32 +229,12 @@ dp_set_icmp_src_ip(void *md, struct xfrm *xf, __be32 xip)
 static int __always_inline
 dp_set_icmp_dst_ip(void *md, struct xfrm *xf, __be32 xip)
 {
-  void *dend = DP_TC_PTR(DP_PDATA_END(md));
-
-  struct iphdr *iph = DP_TC_PTR(DP_PDATA(md) + xf->pm.l3_off);
-  if ((void *)(iph + 1) > dend)  {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLRT_ERR);
-    return -1;
-  }
-
-  struct icmphdr *icmp = DP_ADD_PTR(DP_PDATA(md), xf->pm.l4_off);
-  if ((void *)(icmp + 1) > dend) {
-    F4_PPLN_DROPC(xf, F4_PIPE_RC_PLERR);
-    return -1;
-  }
-
-  __u16 old_icmp_csum = icmp->checksum;
-  icmp->checksum = 0; 
-  struct icmphdr old_icmp = *icmp;
-  icmp->checksum = dp_icmp_checksum_diff(~old_icmp_csum, icmp, &old_icmp);
-
-  __u16 old_csum = iph->check;
-  iph->check = 0;
-  struct iphdr old = *iph;
-  iph->saddr = xf->l34m.saddr4;
-  iph->daddr = xip;
-  iph->check = dp_ipv4_checksum_diff(~old_csum, iph, &old);
-
+  int ip_csum_off  = xf->pm.l3_off + offsetof(struct iphdr, check);
+  int ip_dst_off = xf->pm.l3_off + offsetof(struct iphdr, daddr);
+  __be32 old_dip = xf->l34m.daddr4;
+  
+  bpf_l3_csum_replace(md, ip_csum_off, old_dip, xip, sizeof(xip));
+  bpf_skb_store_bytes(md, ip_dst_off, &xip, sizeof(xip), 0);
   xf->l34m.daddr4 = xip;
 
   return 0;

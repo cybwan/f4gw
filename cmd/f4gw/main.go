@@ -59,19 +59,19 @@ func main() {
 	f4gw.Init()
 	defer f4gw.Close()
 
-	for _, ingress := range f4gwCfg.Ingress {
-		f4gw.AttachIngressBPF(ingress.LinkName)
-	}
+	// for _, ingress := range f4gwCfg.Ingress {
+	// 	f4gw.AttachIngressBPF(ingress.LinkName)
+	// }
 
-	for _, egress := range f4gwCfg.Egress {
-		if err = f4gw.ApplyNatLB(
-			egress.TargetProto,
-			egress.TargetAddr,
-			egress.TargetPort,
-			egress.Backends); err != nil {
-			log.Fatal().Msg(err.Error())
-		}
-	}
+	// for _, egress := range f4gwCfg.Egress {
+	// 	if err = f4gw.ApplyNatLB(
+	// 		egress.TargetProto,
+	// 		egress.TargetAddr,
+	// 		egress.TargetPort,
+	// 		egress.Backends); err != nil {
+	// 		log.Fatal().Msg(err.Error())
+	// 	}
+	// }
 
 	workDuration, err := time.ParseDuration(f4gwCfg.WorkDuration)
 	if err != nil {

@@ -82,6 +82,7 @@ dp_insert_fcv4(void *ctx, struct xfrm *xf, struct dp_fc_tacts *acts)
 static int __always_inline
 dp_pipe_check_res(void *ctx, struct xfrm *xf, void *fa)
 {
+  debug_printf("dp_pipe_check_res pipe_act=%d \n", xf->pm.pipe_act);
   if (xf->pm.pipe_act) {
 
     if (xf->pm.pipe_act & F4_PIPE_DROP) {
@@ -93,6 +94,7 @@ dp_pipe_check_res(void *ctx, struct xfrm *xf, void *fa)
       DP_XMAC_CP(xf->l2m.dl_dst, xf->nm.nrmac);
       xf->pm.oport = xf->nm.nxifi;
     }
+    debug_printf("dp_pipe_check_res oport=%d \n", xf->pm.oport);
 
     if (dp_unparse_packet_always(ctx, xf) != 0) {
         return DP_DROP;
@@ -102,11 +104,11 @@ dp_pipe_check_res(void *ctx, struct xfrm *xf, void *fa)
       if (dp_unparse_packet(ctx, xf) != 0) {
         return DP_DROP;
       }
-      if (xf->pm.f4) {
-        if (dp_f4_packet(ctx, xf) != 0) {
-          return DP_DROP;
-        }
-      }
+      // if (xf->pm.f4) {
+      //   if (dp_f4_packet(ctx, xf) != 0) {
+      //     return DP_DROP;
+      //   }
+      // }
       return bpf_redirect(xf->pm.oport, 0);
     }
 
@@ -128,6 +130,7 @@ dp_ing_ct_main(void *ctx,  struct xfrm *xf)
   }
 
   val = dp_ct_in(ctx, xf);
+  debug_printf("dp_ing_ct_main dp_ct_in %d\n", val);
   if (val < 0) {
     return DP_PASS;
   }
