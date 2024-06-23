@@ -55,8 +55,7 @@ go-build-f4gw: $(LIBBPF_OBJ)
 	CGO_CFLAGS=$(CGO_CFLAGS_DYN) \
 	CGO_LDFLAGS=$(CGO_LDFLAGS_DYN) \
 	GOOS=linux GOARCH=$(ARCH) \
-	$(GO) build \
-	-o ${BIN_DIR}/${F4GW_OUT} ./cmd/${F4GW_OUT}
+	$(GO) build -o ${BIN_DIR}/${F4GW_OUT} ./cmd/${F4GW_OUT}
 
 .PHONY: go
 go: go-build-f4gw
