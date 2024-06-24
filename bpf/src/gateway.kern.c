@@ -42,29 +42,6 @@ int tc_ingress(struct __sk_buff *ctx) {
 
   dp_parse_d0(ctx, xf, 1);
 
-  
-
-  // if ( xf->pm.igr == 1 && \
-  //   xf->l2m.dl_type == ntohs(ETH_P_IP) && \
-  //   xf->l34m.nw_proto == IPPROTO_TCP && \
-  //   xf->l34m.saddr4 == 367175872 && \
-  //   xf->l34m.daddr4 == 3305231619 && \
-  //   xf->l34m.dest == htons(80) ) {
-  //   dp_set_tcp_dst_ip(ctx, xf, 551725248);
-  // }
-
-  // if ( xf->pm.igr == 1 && \
-  //   xf->l2m.dl_type == ntohs(ETH_P_IP) && \
-  //   xf->l34m.nw_proto == IPPROTO_TCP && \
-  //   xf->l34m.saddr4 == 367175872 && \
-  //   xf->l34m.daddr4 == 3305231619 && \
-  //   xf->l34m.dest == htons(80) ) {
-  //   debug_printf("\n");
-  //   debug_printf("\n");
-  //   debug_printf("---------------------------------------\n");
-  //   debug_printf("tc_ingress saddr4 %u daddr4 %u\n", xf->l34m.saddr4, xf->l34m.daddr4);
-  // }
-
   return dp_ing_fc_main(ctx, xf);
 }
 
@@ -84,30 +61,7 @@ int tc_egress(struct __sk_buff *ctx) {
 
   dp_parse_d0(ctx, xf, 1);
 
-  // if ( xf->pm.egr == 1 && \
-  //   xf->l2m.dl_type == ntohs(ETH_P_IP) && \
-  //   xf->l34m.nw_proto == IPPROTO_TCP && \
-  //   xf->l34m.saddr4 == 551725248 && \
-  //   xf->l34m.daddr4 == 367175872 && \
-  //   xf->l34m.source == htons(8689) ) {
-  //   dp_set_tcp_src_ip(ctx, xf, 3305231619);
-  //   dp_set_tcp_sport(ctx, xf, htons(80));
-  // }
-
-  // if ( xf->pm.egr == 1 && \
-  //   xf->l2m.dl_type == ntohs(ETH_P_IP) && \
-  //   xf->l34m.nw_proto == IPPROTO_TCP && \
-  //   xf->l34m.saddr4 == 551725248 && \
-  //   xf->l34m.daddr4 == 367175872 && \
-  //   xf->l34m.source == htons(8689) ) {
-  //   debug_printf("\n");
-  //   debug_printf("\n");
-  //   debug_printf("---------------------------------------\n");
-  //   debug_printf("tc_egress saddr4 %u daddr4 %u\n", xf->l34m.saddr4, xf->l34m.daddr4);
-  // }
-
   return dp_ing_fc_main(ctx, xf);
-  // return DP_PASS;
 }
 
 SEC("classifier/slow")
@@ -141,15 +95,6 @@ int tc_conn_track_func(struct __sk_buff *ctx) {
   if (!xf) {
     return DP_DROP;
   }
-
-  // if ( xf->pm.egr == 1 && \
-  //   xf->l2m.dl_type == ntohs(ETH_P_IP) && \
-  //   xf->l34m.nw_proto == IPPROTO_TCP && \
-  //   xf->l34m.saddr4 == 551725248 && \
-  //   xf->l34m.daddr4 == 367175872 && \
-  //   xf->l34m.source == htons(8689) ) {
-  //   debug_printf("tc_egress tc_conn_track_func saddr4 %u daddr4 %u\n", xf->l34m.saddr4, xf->l34m.daddr4);
-  // }
 
   return dp_ing_ct_main(ctx, xf);
 }
