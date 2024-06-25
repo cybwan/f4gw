@@ -96,6 +96,19 @@ dp_parse_eth(struct parser *p,
 }
 
 static int __always_inline
+dp_parse_vlan(struct parser *p,
+              void *md,
+              struct xfrm *xf)
+{
+  struct __sk_buff *b = md;
+  if (b->vlan_present) {
+    xf->l2m.vlan[0] = htons((__u16)(b->vlan_tci));
+    debug_printf("vlan id %u\n",  xf->l2m.vlan[0]);
+  }
+  return DP_PRET_OK;
+}
+
+static int __always_inline
 dp_parse_arp(struct parser *p,
              void *md,
              struct xfrm *xf)
@@ -367,6 +380,10 @@ dp_parse_d0(void *md,
   xf->pm.py_bytes = DP_DIFF_PTR(p.dend, p.dbegin);
 
   if ((ret = dp_parse_eth(&p, md, xf))) {
+    goto handle_excp;
+  }
+
+  if ((ret = dp_parse_vlan(&p, md, xf))) {
     goto handle_excp;
   }
 
